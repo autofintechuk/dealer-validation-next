@@ -14,22 +14,27 @@ export async function getDealers(page = 1, pageSize = 100) {
       ? `https://${process.env.VERCEL_URL}`
       : process.env.APP_URL || "http://localhost:3000";
 
-    const response = await fetch(
-      `${baseUrl}/api/dealers?page=${page}&pageSize=${pageSize}`,
-      {
-        cache: "no-store",
-        headers: {
-          "x-forwarded-proto": "https",
-        },
-      }
-    );
+    const url = `${baseUrl}/api/dealers?page=${page}&pageSize=${pageSize}`;
+    console.log("[Server] Requesting URL:", url);
+
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: {
+        "x-forwarded-proto": "https",
+        Accept: "application/json",
+      },
+    });
+
+    const responseText = await response.text();
+    console.log("[Server] Raw response:", responseText);
 
     if (!response.ok) {
-      const errorData = await response.json();
       console.error("[Server Error] API response:", {
         status: response.status,
         statusText: response.statusText,
-        error: errorData,
+        url: response.url,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: responseText,
       });
 
       if (response.status === 401) {
@@ -37,11 +42,21 @@ export async function getDealers(page = 1, pageSize = 100) {
       }
 
       throw new Error(
-        errorData.details || `API request failed with status ${response.status}`
+        `API request failed with status ${
+          response.status
+        }: ${responseText.slice(0, 200)}`
       );
     }
 
-    return await response.json();
+    try {
+      return JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("[Server Error] Failed to parse JSON response:", {
+        error: parseError,
+        responseText: responseText.slice(0, 200),
+      });
+      throw new Error("Failed to parse API response");
+    }
   } catch (error) {
     console.error("[Server Error] Failed to fetch dealers:", error);
     throw error;

@@ -130,34 +130,60 @@ class MarketplaceAPI {
     }
   }
 
-  private async getHeaders() {
-    if (!this.accessToken) {
-      await this.authenticate();
+  private async authenticate() {
+    try {
+      const response = await fetch(`${this.baseUrl}/auth/token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Authentication failed: ${response.status} - ${errorText}`
+        );
+      }
+
+      const data: AuthResponse = await response.json();
+      if (!data.access_token) {
+        throw new Error("No access token received");
+      }
+
+      this.accessToken = data.access_token;
+    } catch (error) {
+      console.error("[Marketplace API] Authentication error:", error);
+      throw new Error(
+        `Authentication failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     }
-    return {
-      Authorization: `Bearer ${this.accessToken}`,
-      "Content-Type": "application/json",
-    };
   }
 
-  private async authenticate() {
-    const response = await fetch(`${this.baseUrl}/auth/token`, {
-      method: "POST",
-      headers: {
+  private async getHeaders() {
+    try {
+      if (!this.accessToken) {
+        await this.authenticate();
+      }
+
+      if (!this.accessToken) {
+        throw new Error("Failed to obtain access token");
+      }
+
+      return {
+        Authorization: `Bearer ${this.accessToken}`,
         "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Authentication failed");
+      };
+    } catch (error) {
+      console.error("[Marketplace API] Headers error:", error);
+      throw error;
     }
-
-    const data: AuthResponse = await response.json();
-    this.accessToken = data.access_token;
   }
 
   private async getOrganizationId() {

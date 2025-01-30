@@ -25,7 +25,20 @@ export async function getDealers(page = 1, pageSize = 100) {
     );
 
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      const errorData = await response.json();
+      console.error("[Server Error] API response:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData,
+      });
+
+      if (response.status === 401) {
+        throw new Error("Authentication failed - please check API credentials");
+      }
+
+      throw new Error(
+        errorData.details || `API request failed with status ${response.status}`
+      );
     }
 
     return await response.json();

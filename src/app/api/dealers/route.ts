@@ -1,22 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import { marketplaceAPI } from "@/lib/marketplace-api";
+import { NextResponse } from "next/server";
+import { marketplaceAPI } from "@/lib/marketplace-api/server";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || "100");
+    const { searchParams } = new URL(request.url);
+    const page = Number(searchParams.get("page")) || 1;
+    const pageSize = Number(searchParams.get("pageSize")) || 100;
 
-    console.log("[API] Processing request:", {
-      url: request.url,
-      headers: Object.fromEntries(request.headers.entries()),
-    });
+    const dealers = await marketplaceAPI.getDealersWithStats(page, pageSize);
 
-    const dealersResponse = await marketplaceAPI.getDealersWithStats(
-      page,
-      pageSize
-    );
-    return NextResponse.json(dealersResponse);
+    return NextResponse.json(dealers);
   } catch (error) {
     console.error("[API Error] Failed to fetch dealers:", {
       error,

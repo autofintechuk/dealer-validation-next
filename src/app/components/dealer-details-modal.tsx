@@ -1,10 +1,33 @@
 "use client";
 
-import { type DealerWithStats } from "@/lib/marketplace-api";
+import {
+  type DealerWithStats,
+  type DealerVehicle,
+} from "@/lib/marketplace-api";
+import { useState, useEffect } from "react";
+import { getDealerVehicles } from "@/lib/marketplace-api/actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 interface DealerDetailsModalProps {
   dealer: DealerWithStats;
   onClose: () => void;
+  open: boolean;
 }
 
 interface VehicleIssue {
@@ -16,7 +39,13 @@ interface VehicleIssue {
 export function DealerDetailsModal({
   dealer,
   onClose,
+  open,
 }: DealerDetailsModalProps) {
+  const [activeTab, setActiveTab] = useState("issues");
+  const [vehicles, setVehicles] = useState<DealerVehicle[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   // Aggregate issues by vehicle ID
   const vehicleIssues = new Map<string, VehicleIssue>();
 
@@ -42,92 +71,162 @@ export function DealerDetailsModal({
     });
   });
 
+  useEffect(() => {
+    async function fetchVehicles() {
+      if (activeTab === "vehicles") {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await getDealerVehicles(dealer.marketcheckDealerId);
+          setVehicles(response.data);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to fetch vehicles"
+          );
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchVehicles();
+  }, [activeTab, dealer.marketcheckDealerId]);
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {dealer.dealer.name} - Not Advertised Vehicles
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{dealer.dealer.name} - Vehicle Details</DialogTitle>
+        </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-medium text-gray-900 mb-2">Summary</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-900">
-              <div>
-                <p className="mb-1">
-                  Total Stock:{" "}
-                  {dealer.listingOverview?.[
-                    "Total number of stocks in marketcheck"
-                  ] || 0}
-                </p>
-                <p>
-                  Currently Advertised:{" "}
-                  {dealer.listingOverview?.[
-                    "Total number of vehicles currently advertised"
-                  ] || 0}
-                </p>
-              </div>
-              <div>
-                <p className="mb-1">
-                  Not Advertised (Criteria):{" "}
-                  {dealer.listingOverview?.[
-                    "Vehicles not advertised due to specific criteria"
-                  ].count || 0}
-                </p>
-                <p>
-                  Not Advertised (48h):{" "}
-                  {dealer.listingOverview?.[
-                    "Vehicles not advertised due to last seen time more than 48 hours"
-                  ].count || 0}
-                </p>
-              </div>
-            </div>
-          </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="issues">Issues</TabsTrigger>
+            <TabsTrigger value="vehicles">All Vehicles</TabsTrigger>
+          </TabsList>
 
-          <div>
-            <h3 className="font-medium text-gray-900 mb-2">Vehicle Details</h3>
-            <div className="divide-y divide-gray-200">
-              {Array.from(vehicleIssues.values()).map((issue) => (
-                <div key={issue.vehicleId} className="py-3">
-                  <p className="font-medium text-gray-900">{issue.vehicleId}</p>
-                  <div className="space-y-1 mt-1">
-                    {issue.criteria && (
-                      <p className="text-sm text-red-600">
-                        Reason: {issue.criteria.join(", ")}
-                      </p>
-                    )}
-                    {issue.lastSeen && (
-                      <p className="text-sm text-orange-600">
-                        Last seen: {new Date(issue.lastSeen).toLocaleString()}
-                      </p>
-                    )}
+          <TabsContent value="issues" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p>
+                      Total Stock:{" "}
+                      {dealer.listingOverview?.[
+                        "Total number of stocks in marketcheck"
+                      ] || 0}
+                    </p>
+                    <p>
+                      Currently Advertised:{" "}
+                      {dealer.listingOverview?.[
+                        "Total number of vehicles currently advertised"
+                      ] || 0}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <p>
+                      Not Advertised (Criteria):{" "}
+                      {dealer.listingOverview?.[
+                        "Vehicles not advertised due to specific criteria"
+                      ].count || 0}
+                    </p>
+                    <p>
+                      Not Advertised (48h):{" "}
+                      {dealer.listingOverview?.[
+                        "Vehicles not advertised due to last seen time more than 48 hours"
+                      ].count || 0}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Vehicle Issues</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from(vehicleIssues.values()).map((issue) => (
+                    <div
+                      key={issue.vehicleId}
+                      className="border-b pb-4 last:border-0 last:pb-0"
+                    >
+                      <p className="font-medium">{issue.vehicleId}</p>
+                      <div className="space-y-2 mt-2">
+                        {issue.criteria && (
+                          <Badge variant="destructive" className="mr-2">
+                            {issue.criteria.join(", ")}
+                          </Badge>
+                        )}
+                        {issue.lastSeen && (
+                          <Badge variant="secondary">
+                            Last seen:{" "}
+                            {new Date(issue.lastSeen).toLocaleString()}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="vehicles">
+            {loading ? (
+              <div className="text-center py-4">Loading vehicles...</div>
+            ) : error ? (
+              <div className="text-center py-4 text-destructive">{error}</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Reg</TableHead>
+                    <TableHead>Make/Model</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Miles</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {vehicles.map((vehicle) => (
+                    <TableRow key={vehicle.id}>
+                      <TableCell className="font-medium">
+                        {vehicle.vehicle.vehicleRegistrationMark}
+                      </TableCell>
+                      <TableCell>
+                        {vehicle.vehicle.build.make}{" "}
+                        {vehicle.vehicle.build.model}
+                      </TableCell>
+                      <TableCell>
+                        £{vehicle.vehicle.price.toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        {vehicle.vehicle.miles.toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            vehicle.status === "active"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {vehicle.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
   );
 }

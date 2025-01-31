@@ -1,0 +1,16 @@
+import { createEnv } from "@t3-oss/env-nextjs";
+import { z } from "zod";
+
+export const env = createEnv({
+  server: {
+    MARKETPLACE_API_URL: z.string().url(),
+    MARKETPLACE_CLIENT_ID: z.string().min(1),
+    MARKETPLACE_CLIENT_SECRET: z.string().min(1),
+  },
+  client: {},
+  runtimeEnv: {
+    MARKETPLACE_API_URL: process.env.MARKETPLACE_API_URL,
+    MARKETPLACE_CLIENT_ID: process.env.MARKETPLACE_CLIENT_ID,
+    MARKETPLACE_CLIENT_SECRET: process.env.MARKETPLACE_CLIENT_SECRET,
+  },
+});

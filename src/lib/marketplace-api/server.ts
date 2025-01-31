@@ -1,119 +1,13 @@
-import { config } from "./config";
+import { env } from "@/env";
+import type {
+  AuthResponse,
+  DealerWithStats,
+  DealerVehiclesResponse,
+  ListingOverview,
+  Organization,
+} from "./types";
 
-interface AuthResponse {
-  access_token: string;
-}
-
-interface Organization {
-  data: Array<{
-    id: string;
-    name: string;
-    mode: string;
-    metadata: Record<string, unknown>;
-    createdAt: string;
-    updatedAt: string;
-  }>;
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-}
-
-interface DealerFinanceServices {
-  isActive: boolean;
-  activeProviderId: string | null;
-  codeWeaversApiKey: string | null;
-  codeWeaversDefaultDeposit: number | null;
-  autoQuoteUsername: string | null;
-  autoQuotePassword: string | null;
-  autoQuoteHpGroupId: string | null;
-  autoQuotePcpGroupId: string | null;
-}
-
-interface DealerMetadata {
-  crmFullAccessApiKey: string;
-  crmLimitedAccessApiKey: string;
-  freeDeliveryRadiusInMiles: number | null;
-  fixedDeliveryFee: number | null;
-  maxDeliveryRadiusInMiles: number | null;
-  representativeExampleText: string | null;
-}
-
-interface DealerInfo {
-  id: number;
-  name: string;
-  website: string;
-  fcaStatus: string;
-  fcaReferenceNumber: string;
-  street: string;
-  city: string;
-  country: string;
-  county: string | null;
-  zipcode: string;
-  latitude: number;
-  longitude: number;
-  phoneNumber: string;
-}
-
-interface Dealer {
-  id: string;
-  marketcheckDealerId: string;
-  organizationId: string;
-  dealer: DealerInfo;
-  metadata: DealerMetadata;
-  services: {
-    finance: DealerFinanceServices;
-  };
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface DealersResponse {
-  data: Dealer[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-}
-
-interface VehicleWarning {
-  vehicleId: string;
-  warningMsg: string[];
-}
-
-interface VehicleLastSeen {
-  vehicleId: string;
-  lastSeen: string;
-}
-
-interface StockCount {
-  numberOfAllStock: number;
-  numberOfActiveStock: number;
-}
-
-interface ListingOverview {
-  "Total number of stocks in marketcheck": number;
-  "Total number of vehicles currently advertised": number;
-  "Last data sync time": string;
-  "Vehicles not advertised due to specific criteria": {
-    count: number;
-    warnings: VehicleWarning[];
-  };
-  "Vehicles not advertised due to last seen time more than 48 hours": {
-    count: number;
-    details: VehicleLastSeen[];
-  };
-  "Vehicles not advertised for other reasons": number;
-  "Vehicles that have been in stock for over 30 days": StockCount;
-  "Vehicles that have been in stock for over 45 days": StockCount;
-}
-
-export interface DealerWithStats extends Dealer {
-  listingOverview?: ListingOverview;
-}
-
-class MarketplaceAPI {
+export class MarketplaceAPI {
   private baseUrl: string;
   private accessToken: string | null = null;
   private organizationId: string | null = null;
@@ -121,17 +15,18 @@ class MarketplaceAPI {
   private clientSecret: string;
 
   constructor() {
-    this.baseUrl = config.marketplace.apiUrl;
-    this.clientId = config.marketplace.clientId;
-    this.clientSecret = config.marketplace.clientSecret;
-
-    if (!this.clientId || !this.clientSecret) {
-      throw new Error("Missing marketplace API credentials");
-    }
+    this.baseUrl = env.MARKETPLACE_API_URL;
+    this.clientId = env.MARKETPLACE_CLIENT_ID;
+    this.clientSecret = env.MARKETPLACE_CLIENT_SECRET;
   }
 
   private async authenticate() {
     try {
+      console.log("[Auth] Attempting authentication with:", {
+        url: `${this.baseUrl}/auth/token`,
+        clientId: this.clientId.slice(0, 4) + "...", // only log first 4 chars for security
+      });
+
       const response = await fetch(`${this.baseUrl}/auth/token`, {
         method: "POST",
         headers: {
@@ -143,19 +38,25 @@ class MarketplaceAPI {
         }),
       });
 
+      const responseText = await response.text();
+      console.log("[Auth] Raw response:", responseText);
+
       if (!response.ok) {
-        const errorText = await response.text();
         throw new Error(
-          `Authentication failed: ${response.status} - ${errorText}`
+          `Authentication failed: ${response.status} - ${responseText}`
         );
       }
 
-      const data: AuthResponse = await response.json();
+      const data: AuthResponse = JSON.parse(responseText);
       if (!data.access_token) {
         throw new Error("No access token received");
       }
 
       this.accessToken = data.access_token;
+      console.log(
+        "[Auth] Successfully authenticated, token:",
+        this.accessToken.slice(0, 10) + "..."
+      );
     } catch (error) {
       console.error("[Marketplace API] Authentication error:", error);
       throw new Error(
@@ -206,7 +107,16 @@ class MarketplaceAPI {
     return this.organizationId;
   }
 
-  async getDealers(page = 1, pageSize = 100): Promise<DealersResponse> {
+  async getDealers(
+    page = 1,
+    pageSize = 100
+  ): Promise<{
+    data: DealerWithStats[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  }> {
     const organizationId = await this.getOrganizationId();
     const response = await fetch(
       `${this.baseUrl}/Organizations/${organizationId}/dealers?page=${page}&pageSize=${pageSize}`,
@@ -243,8 +153,10 @@ class MarketplaceAPI {
   ): Promise<DealerWithStats[]> {
     try {
       const dealersResponse = await this.getDealers(page, pageSize);
+      const dealers = dealersResponse.data;
+
       const dealersWithStats = await Promise.all(
-        dealersResponse.data.map(async (dealer) => {
+        dealers.map(async (dealer) => {
           try {
             const listingOverview = await this.getListingOverview(
               dealer.marketcheckDealerId
@@ -267,6 +179,45 @@ class MarketplaceAPI {
       );
       throw error;
     }
+  }
+
+  async getDealerVehicles(
+    dealerId: string,
+    page = 1,
+    pageSize = 100
+  ): Promise<DealerVehiclesResponse> {
+    const organizationId = await this.getOrganizationId();
+    const headers = await this.getHeaders();
+
+    console.log("[Vehicles] Request details:", {
+      url: `${this.baseUrl}/organizations/${organizationId}/dealers/${dealerId}/vehicles?page=${page}&pageSize=${pageSize}`,
+      headers: {
+        ...headers,
+        Authorization: headers.Authorization.slice(0, 15) + "...", // only log start of token
+      },
+    });
+
+    const response = await fetch(
+      `${this.baseUrl}/organizations/${organizationId}/dealers/${dealerId}/vehicles?page=${page}&pageSize=${pageSize}`,
+      {
+        headers,
+      }
+    );
+
+    const responseText = await response.text();
+    console.log("[Vehicles] Response:", {
+      status: response.status,
+      statusText: response.statusText,
+      body: responseText,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch dealer vehicles: ${response.status} - ${responseText}`
+      );
+    }
+
+    return JSON.parse(responseText);
   }
 }
 

@@ -1,8 +1,5 @@
-import { getDealers } from "./actions";
-import { ClientPage } from "./client-page";
+import ClientPage from "./components/client-page";
 
 export default async function HomePage() {
-  const dealers = await getDealers();
-
-  return <ClientPage initialDealers={dealers} />;
+  return <ClientPage />;
 }

@@ -1,6 +1,9 @@
 "use client";
 
-import { type DealerWithStats } from "@/lib/marketplace-api";
+import {
+  type DealerWithStats,
+  type DealerVehicle,
+} from "@/lib/marketplace-api";
 import { useState } from "react";
 import { useDealerVehicles } from "@/lib/hooks/use-queries";
 import {
@@ -74,195 +77,233 @@ export function DealerDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{dealer.dealer.name} - Vehicle Details</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-gray-50 p-0">
+        <DialogHeader className="px-6 py-4 bg-gray-900 text-white border-b border-gray-800">
+          <DialogTitle className="text-xl font-semibold tracking-tight">
+            {dealer.dealer.name}
+            <div className="text-sm font-normal text-gray-400 mt-1">
+              {dealer.dealer.street}, {dealer.dealer.city},{" "}
+              {dealer.dealer.zipcode}
+            </div>
+          </DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="issues">Issues</TabsTrigger>
-            <TabsTrigger value="vehicles">All Vehicles</TabsTrigger>
-          </TabsList>
+          <div className="px-6 pt-4">
+            <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+              <TabsTrigger value="issues" className="font-medium">
+                Issues
+              </TabsTrigger>
+              <TabsTrigger value="vehicles" className="font-medium">
+                All Vehicles
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="issues" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <p>
-                      Total Stock:{" "}
+          <div className="p-6">
+            <TabsContent value="issues" className="space-y-4 mt-0">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-semibold text-gray-100 tracking-tight">
+                      Total Vehicle Stock
+                    </CardTitle>
+                    <Badge
+                      variant="outline"
+                      className="border-gray-700 text-gray-100 font-medium"
+                    >
                       {dealer.listingOverview?.[
                         "Total number of stocks in marketcheck"
                       ] || 0}
-                    </p>
-                    <p>
-                      Currently Advertised:{" "}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-gray-100">
+                      Currently advertising:
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="border-gray-700 text-gray-100 font-medium"
+                    >
                       {dealer.listingOverview?.[
                         "Total number of vehicles currently advertised"
                       ] || 0}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <p>
-                      Not Advertised (Criteria):{" "}
+                    </Badge>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-semibold text-gray-100 tracking-tight">
+                      Vehicles with Issues
+                    </CardTitle>
+                    <Badge variant="destructive" className="font-medium">
                       {dealer.listingOverview?.[
                         "Vehicles not advertised due to specific criteria"
                       ].count || 0}
-                    </p>
-                    <p>
-                      Not Advertised (48h):{" "}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-gray-100">
+                      Not seen in 48h+:
+                    </div>
+                    <Badge variant="destructive" className="font-medium">
                       {dealer.listingOverview?.[
                         "Vehicles not advertised due to last seen time more than 48 hours"
                       ].count || 0}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Vehicle Issues</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Array.from(vehicleIssues.values()).map((issue) => (
-                    <div
-                      key={issue.vehicleId}
-                      className="border-b pb-4 last:border-0 last:pb-0"
-                    >
-                      <p className="font-medium">{issue.vehicleId}</p>
-                      <div className="space-y-2 mt-2">
-                        {issue.criteria && (
-                          <Badge variant="destructive" className="mr-2">
-                            {issue.criteria.join(", ")}
-                          </Badge>
-                        )}
-                        {issue.lastSeen && (
-                          <Badge variant="secondary">
-                            Last seen:{" "}
-                            {new Date(issue.lastSeen).toLocaleString()}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="vehicles">
-            {isLoading ? (
-              <div className="text-center py-4">Loading vehicles...</div>
-            ) : error ? (
-              <div className="text-center py-4 text-destructive">
-                {error instanceof Error
-                  ? error.message
-                  : "Failed to fetch vehicles"}
+                    </Badge>
+                  </CardContent>
+                </Card>
               </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>VRM</TableHead>
-                    <TableHead>Vehicle</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                    <TableHead className="text-right">Mileage</TableHead>
-                    <TableHead className="text-center">Images</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {vehicles.map((vehicle) => {
-                    const imageCount =
-                      vehicle.vehicle.media.photoLinks?.length || 0;
-                    const hasEnoughImages = imageCount >= 5;
-                    const isActive = vehicle.status === "active";
-                    const lastSeenDays = Math.floor(
-                      (Date.now() -
-                        new Date(vehicle.vehicle.lastSeenAtDate).getTime()) /
-                        (1000 * 60 * 60 * 24)
-                    );
-                    const hasLastSeenIssue = lastSeenDays > 2;
 
-                    return (
-                      <TableRow
-                        key={vehicle._id}
-                        className={cn(
-                          "cursor-pointer",
-                          !isActive && "bg-muted/50"
-                        )}
+              <Card className="border-gray-200">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold tracking-tight">
+                    Vehicle Issues
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {Array.from(vehicleIssues.values()).map((issue) => (
+                      <div
+                        key={issue.vehicleId}
+                        className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
                       >
-                        <TableCell className="font-medium">
-                          {vehicle.vehicle.vehicleRegistrationMark}
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">
-                            {vehicle.vehicle.build.make}{" "}
-                            {vehicle.vehicle.build.model}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {vehicle.vehicle.build.year} •{" "}
-                            {vehicle.vehicle.build.variant}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="font-medium">
-                            £{vehicle.vehicle.price.toLocaleString()}
-                          </div>
-                          {vehicle.vehicle.priceChangePercent !== 0 &&
-                            vehicle.vehicle.priceChangePercent !== null && (
-                              <div
-                                className={cn(
-                                  "text-sm",
-                                  vehicle.vehicle.priceChangePercent > 0
-                                    ? "text-red-500"
-                                    : "text-green-500"
-                                )}
-                              >
-                                {vehicle.vehicle.priceChangePercent > 0
-                                  ? "+"
-                                  : ""}
-                                {vehicle.vehicle.priceChangePercent.toFixed(1)}%
-                              </div>
-                            )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {vehicle.vehicle.miles.toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge
-                            variant={
-                              hasEnoughImages ? "outline" : "destructive"
-                            }
-                          >
-                            {imageCount}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <Badge variant={isActive ? "default" : "secondary"}>
-                              {vehicle.status}
+                        <p className="font-medium tracking-tight">
+                          {issue.vehicleId}
+                        </p>
+                        <div className="space-y-2 mt-2">
+                          {issue.criteria && (
+                            <Badge
+                              variant="destructive"
+                              className="font-medium"
+                            >
+                              {issue.criteria.join(", ")}
                             </Badge>
-                            {hasLastSeenIssue && (
-                              <Badge variant="destructive" className="ml-1">
-                                Not seen {lastSeenDays}d
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
+                          )}
+                          {issue.lastSeen && (
+                            <Badge variant="secondary" className="font-medium">
+                              Last seen:{" "}
+                              {new Date(issue.lastSeen).toLocaleString()}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="vehicles" className="mt-0">
+              {isLoading ? (
+                <div className="text-center py-8 text-gray-600 font-medium">
+                  Loading vehicles...
+                </div>
+              ) : error ? (
+                <div className="text-center py-8 text-red-600 font-medium">
+                  {error instanceof Error
+                    ? error.message
+                    : "Failed to fetch vehicles"}
+                </div>
+              ) : (
+                <div className="bg-white rounded-md border border-gray-200 shadow-sm">
+                  <Table>
+                    <TableHeader className="bg-gray-50">
+                      <TableRow>
+                        <TableHead className="font-semibold">VRM</TableHead>
+                        <TableHead className="font-semibold">Vehicle</TableHead>
+                        <TableHead className="font-semibold text-right">
+                          Price
+                        </TableHead>
+                        <TableHead className="font-semibold text-right">
+                          Mileage
+                        </TableHead>
+                        <TableHead className="font-semibold text-center">
+                          Images
+                        </TableHead>
+                        <TableHead className="font-semibold">Status</TableHead>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </TabsContent>
+                    </TableHeader>
+                    <TableBody>
+                      {vehicles.map((vehicle) => {
+                        const imageCount =
+                          vehicle.vehicle.media.photoLinks?.length || 0;
+                        const hasEnoughImages = imageCount >= 5;
+                        const isActive = vehicle.status === "active";
+                        const lastSeenDays = Math.floor(
+                          (Date.now() -
+                            new Date(
+                              vehicle.vehicle.lastSeenAtDate
+                            ).getTime()) /
+                            (1000 * 60 * 60 * 24)
+                        );
+                        const hasLastSeenIssue = lastSeenDays > 2;
+
+                        return (
+                          <TableRow
+                            key={vehicle._id}
+                            className={cn(
+                              "hover:bg-gray-50",
+                              !isActive && "bg-gray-50/50"
+                            )}
+                          >
+                            <TableCell className="font-mono text-sm">
+                              {vehicle.vehicle.vehicleRegistrationMark}
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium tracking-tight">
+                                {vehicle.vehicle.build.make}{" "}
+                                {vehicle.vehicle.build.model}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {vehicle.vehicle.build.year} •{" "}
+                                {vehicle.vehicle.build.variant}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              £{vehicle.vehicle.price.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {vehicle.vehicle.miles.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge
+                                variant={
+                                  hasEnoughImages ? "outline" : "destructive"
+                                }
+                                className="font-medium"
+                              >
+                                {imageCount}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <Badge
+                                  variant={isActive ? "default" : "secondary"}
+                                  className="font-medium"
+                                >
+                                  {vehicle.status}
+                                </Badge>
+                                {hasLastSeenIssue && (
+                                  <Badge
+                                    variant="destructive"
+                                    className="font-medium"
+                                  >
+                                    Not seen {lastSeenDays}d
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+          </div>
         </Tabs>
       </DialogContent>
     </Dialog>

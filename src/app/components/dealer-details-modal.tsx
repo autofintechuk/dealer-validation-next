@@ -1,11 +1,8 @@
 "use client";
 
-import {
-  type DealerWithStats,
-  type DealerVehicle,
-} from "@/lib/marketplace-api";
-import { useState, useEffect } from "react";
-import { getDealerVehicles } from "@/lib/marketplace-api/actions";
+import { type DealerWithStats } from "@/lib/marketplace-api";
+import { useState } from "react";
+import { useDealerVehicles } from "@/lib/hooks/use-queries";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface DealerDetailsModalProps {
   dealer: DealerWithStats;
@@ -42,9 +40,12 @@ export function DealerDetailsModal({
   open,
 }: DealerDetailsModalProps) {
   const [activeTab, setActiveTab] = useState("issues");
-  const [vehicles, setVehicles] = useState<DealerVehicle[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const {
+    data: vehicles = [],
+    isLoading,
+    error,
+  } = useDealerVehicles(dealer.marketcheckDealerId, activeTab === "vehicles");
 
   // Aggregate issues by vehicle ID
   const vehicleIssues = new Map<string, VehicleIssue>();
@@ -70,27 +71,6 @@ export function DealerDetailsModal({
       lastSeen: detail.lastSeen,
     });
   });
-
-  useEffect(() => {
-    async function fetchVehicles() {
-      if (activeTab === "vehicles") {
-        setLoading(true);
-        setError(null);
-        try {
-          const response = await getDealerVehicles(dealer.marketcheckDealerId);
-          setVehicles(response.data);
-        } catch (err) {
-          setError(
-            err instanceof Error ? err.message : "Failed to fetch vehicles"
-          );
-        } finally {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchVehicles();
-  }, [activeTab, dealer.marketcheckDealerId]);
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
@@ -177,50 +157,108 @@ export function DealerDetailsModal({
           </TabsContent>
 
           <TabsContent value="vehicles">
-            {loading ? (
+            {isLoading ? (
               <div className="text-center py-4">Loading vehicles...</div>
             ) : error ? (
-              <div className="text-center py-4 text-destructive">{error}</div>
+              <div className="text-center py-4 text-destructive">
+                {error instanceof Error
+                  ? error.message
+                  : "Failed to fetch vehicles"}
+              </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Reg</TableHead>
-                    <TableHead>Make/Model</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Miles</TableHead>
+                    <TableHead>VRM</TableHead>
+                    <TableHead>Vehicle</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead className="text-right">Mileage</TableHead>
+                    <TableHead className="text-center">Images</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {vehicles.map((vehicle) => (
-                    <TableRow key={vehicle.id}>
-                      <TableCell className="font-medium">
-                        {vehicle.vehicle.vehicleRegistrationMark}
-                      </TableCell>
-                      <TableCell>
-                        {vehicle.vehicle.build.make}{" "}
-                        {vehicle.vehicle.build.model}
-                      </TableCell>
-                      <TableCell>
-                        £{vehicle.vehicle.price.toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        {vehicle.vehicle.miles.toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            vehicle.status === "active"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {vehicle.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {vehicles.map((vehicle) => {
+                    const imageCount =
+                      vehicle.vehicle.media.photoLinks?.length || 0;
+                    const hasEnoughImages = imageCount >= 5;
+                    const isActive = vehicle.status === "active";
+                    const lastSeenDays = Math.floor(
+                      (Date.now() -
+                        new Date(vehicle.vehicle.lastSeenAtDate).getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    );
+                    const hasLastSeenIssue = lastSeenDays > 2;
+
+                    return (
+                      <TableRow
+                        key={vehicle._id}
+                        className={cn(
+                          "cursor-pointer",
+                          !isActive && "bg-muted/50"
+                        )}
+                      >
+                        <TableCell className="font-medium">
+                          {vehicle.vehicle.vehicleRegistrationMark}
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {vehicle.vehicle.build.make}{" "}
+                            {vehicle.vehicle.build.model}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {vehicle.vehicle.build.year} •{" "}
+                            {vehicle.vehicle.build.variant}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="font-medium">
+                            £{vehicle.vehicle.price.toLocaleString()}
+                          </div>
+                          {vehicle.vehicle.priceChangePercent !== 0 &&
+                            vehicle.vehicle.priceChangePercent !== null && (
+                              <div
+                                className={cn(
+                                  "text-sm",
+                                  vehicle.vehicle.priceChangePercent > 0
+                                    ? "text-red-500"
+                                    : "text-green-500"
+                                )}
+                              >
+                                {vehicle.vehicle.priceChangePercent > 0
+                                  ? "+"
+                                  : ""}
+                                {vehicle.vehicle.priceChangePercent.toFixed(1)}%
+                              </div>
+                            )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {vehicle.vehicle.miles.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge
+                            variant={
+                              hasEnoughImages ? "outline" : "destructive"
+                            }
+                          >
+                            {imageCount}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <Badge variant={isActive ? "default" : "secondary"}>
+                              {vehicle.status}
+                            </Badge>
+                            {hasLastSeenIssue && (
+                              <Badge variant="destructive" className="ml-1">
+                                Not seen {lastSeenDays}d
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}

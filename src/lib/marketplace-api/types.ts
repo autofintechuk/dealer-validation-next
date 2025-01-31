@@ -126,34 +126,34 @@ export interface DealerWithStats {
 }
 
 export interface VehicleMedia {
-  photoLinks?: string[];
-  photoLinksCached?: string[];
-  s3PhotoLinks?: string[];
+  photoLinks: string[];
+  photoLinksCached: string[];
+  s3PhotoLinks: string[];
 }
 
 export interface VehicleBuild {
   year: number;
   make: string;
-  variant?: string;
-  body_type?: string;
-  vehicle_type?: string;
+  variant: string;
+  body_type: string;
+  vehicle_type: string;
   transmission: string;
-  drivetrain?: string;
+  drivetrain: string;
   fuel_type: string;
-  doors?: number;
+  doors: number;
   cylinders: number;
-  std_seating?: number;
-  trim?: string;
+  std_seating: string;
+  trim: string;
   engine_size: number;
   model: string;
-  highway_mpg?: number;
-  city_mpg?: number;
-  combined_mpg?: number;
-  performance_torque_ftlb?: number;
-  performance_maxspeed_mph?: number;
-  performance_power_bhp?: number;
-  performance_co2?: number;
-  euro_status?: string;
+  highway_mpg: number | null;
+  city_mpg: number | null;
+  combined_mpg: number;
+  performance_torque_ftlb: number;
+  performance_maxspeed_mph: number;
+  performance_power_bhp: number;
+  performance_co2: number;
+  euro_status: number;
 }
 
 export interface VehicleFinance {
@@ -165,16 +165,16 @@ export interface VehicleFinance {
 export interface Vehicle {
   id: string;
   vehicleRegistrationMark: string;
-  uvcId?: string;
+  uvcId: string;
   heading: string;
   price: number;
-  priceChangePercent?: number;
+  priceChangePercent: number;
   miles: number;
-  msrp?: number;
-  dataSource?: string;
+  msrp: number | null;
+  dataSource: string;
   vdpUrl: string;
-  exteriorColor?: string;
-  baseExtColor?: string;
+  exteriorColor: string;
+  baseExtColor: string;
   dom: number;
   dom180: number;
   domActive: number;
@@ -182,7 +182,7 @@ export interface Vehicle {
   sellerType: string;
   inventoryType: string;
   vehicleRegistrationDate: string;
-  vehicleRegistrationYear?: number;
+  vehicleRegistrationYear: number;
   lastSeenAt: number;
   lastSeenAtDate: string;
   scrapedAt: number;
@@ -193,49 +193,166 @@ export interface Vehicle {
   firstSeenAtMcDate: string;
   firstSeenAtSource: number;
   firstSeenAtSourceDate: string;
-  refPrice?: number;
-  refPriceDt?: string;
-  refMiles?: number;
-  refMilesDt?: string;
-  isVatIncluded?: boolean;
-  source?: string;
-  location: Location;
-  writeOffCategory?: string;
+  refPrice: number;
+  refPriceDt: number;
+  refMiles: number;
+  refMilesDt: number;
+  isVatIncluded: boolean | null;
+  source: string;
+  carLocation: string | null;
+  writeOffCategory: string | null;
   media: VehicleMedia;
   dealer: VehicleDealer;
   build: VehicleBuild;
 }
 
 export interface VehicleDealer {
-  id: string;
-  dealer: Dealer;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
+  id: number;
+  name: string;
+  street: string;
+  city: string;
+  state: string | null;
+  country: string;
+  zip: string;
+  latitude: number;
+  longitude: number;
+  phone: string;
 }
 
 export interface DealerVehicle {
-  id: string;
+  _id: string;
+  uid: string;
   uniqueId: string;
-  vehicle: Vehicle;
   marketcheckDealerId: string;
-  status: string;
-  autoquote: {
-    PCP: VehicleFinance;
-    HP: VehicleFinance;
-  };
+  vehicle: Vehicle;
+  status: "active" | "expired";
   createdAt: string;
   updatedAt: string;
+  build: VehicleBuild;
+  autoquote?: {
+    PCP?: VehicleFinance;
+    HP?: VehicleFinance;
+  };
 }
 
-export interface DealerVehiclesResponse {
-  data: DealerVehicle[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
+export interface DealerVehicle {
+  data: {
+    _id: string;
+    uid: string;
+    uniqueId: string;
+    marketcheckDealerId: string;
+    vehicle: {
+      id: string;
+      vehicleRegistrationMark: string;
+      uvcId: string;
+      heading: string;
+      price: number;
+      priceChangePercent: number;
+      miles: number;
+      dataSource: string;
+      vdpUrl: string;
+      exteriorColor: string;
+      baseExtColor: string;
+      dom: number;
+      dom180: number;
+      domActive: number;
+      dosActive: number;
+      sellerType: string;
+      inventoryType: string;
+      vehicleRegistrationDate: string;
+      vehicleRegistrationYear: number;
+      lastSeenAt: number;
+      lastSeenAtDate: string;
+      scrapedAt: number;
+      scrapedAtDate: string;
+      firstSeenAt: number;
+      firstSeenAtDate: string;
+      firstSeenAtMc: number;
+      firstSeenAtMcDate: string;
+      firstSeenAtSource: number;
+      firstSeenAtSourceDate: string;
+      refPrice: number;
+      refPriceDt: number;
+      refMiles: number;
+      refMilesDt: number;
+      source: string;
+      media: {
+        photoLinks: Array<string>;
+        photoLinksCached: Array<string>;
+        s3PhotoLinks: Array<string>;
+      };
+      dealer: {
+        id: number;
+        name: string;
+        street: string;
+        city: string;
+        country: string;
+        zip: string;
+        latitude: number;
+        longitude: number;
+        phone: string;
+      };
+      build: {
+        year: number;
+        make: string;
+        variant: string;
+        body_type: string;
+        vehicle_type: string;
+        transmission: string;
+        drivetrain: string;
+        fuel_type: string;
+        doors: number;
+        cylinders: number;
+        std_seating: string;
+        trim: string;
+        engine_size: number;
+        model: string;
+        highway_mpg: number;
+        city_mpg: number;
+        combined_mpg: number;
+        performance_torque_ftlb: number;
+        performance_maxspeed_mph: number;
+        performance_power_bhp: number;
+        performance_co2: number;
+        euro_status: number;
+      };
+    };
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    build: {
+      year: number;
+      make: string;
+      variant: string;
+      body_type: string;
+      vehicle_type: string;
+      transmission: string;
+      drivetrain: string;
+      fuel_type: string;
+      doors: number;
+      cylinders: number;
+      std_seating: string;
+      trim: string;
+      engine_size: number;
+      model: string;
+      highway_mpg: number;
+      city_mpg: number;
+      combined_mpg: number;
+      performance_torque_ftlb: number;
+      performance_maxspeed_mph: number;
+      performance_power_bhp: number;
+      performance_co2: number;
+      euro_status: number;
+    };
+    __v: number;
+    autoquote: {
+      HP: {
+        RegularPayment: number;
+        monthly_price: number;
+      };
+    };
+  };
 }
-
 export interface DealersResponse {
   data: Dealer[];
   page: number;

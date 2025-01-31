@@ -4,7 +4,7 @@ import { type DealerWithStats } from "@/lib/marketplace-api";
 import { DealerDetailsModal } from "./dealer-details-modal";
 import { useState } from "react";
 import { handleLogout } from "../../lib/actions";
-import { useQuery } from "@tanstack/react-query";
+import { useDealers } from "@/lib/hooks/use-queries";
 import {
   Table,
   TableBody,
@@ -97,23 +97,8 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
   );
 }
 
-async function fetchDealers() {
-  const response = await fetch("/api/dealers");
-  if (!response.ok) {
-    throw new Error("Failed to fetch dealers");
-  }
-  return response.json();
-}
-
 export default function ClientPage() {
-  const {
-    data: dealers,
-    isLoading,
-    error,
-  } = useQuery<DealerWithStats[]>({
-    queryKey: ["dealers"],
-    queryFn: fetchDealers,
-  });
+  const { data: dealers, isLoading, error } = useDealers();
 
   if (isLoading) {
     return <div className="text-center py-4">Loading dealers...</div>;

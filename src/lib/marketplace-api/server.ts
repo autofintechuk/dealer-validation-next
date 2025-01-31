@@ -1,8 +1,8 @@
 import { env } from "@/env";
 import type {
   AuthResponse,
+  DealerVehicle,
   DealerWithStats,
-  DealerVehiclesResponse,
   ListingOverview,
   Organization,
 } from "./types";
@@ -22,11 +22,6 @@ export class MarketplaceAPI {
 
   private async authenticate() {
     try {
-      console.log("[Auth] Attempting authentication with:", {
-        url: `${this.baseUrl}/auth/token`,
-        clientId: this.clientId.slice(0, 4) + "...", // only log first 4 chars for security
-      });
-
       const response = await fetch(`${this.baseUrl}/auth/token`, {
         method: "POST",
         headers: {
@@ -39,7 +34,6 @@ export class MarketplaceAPI {
       });
 
       const responseText = await response.text();
-      console.log("[Auth] Raw response:", responseText);
 
       if (!response.ok) {
         throw new Error(
@@ -53,10 +47,6 @@ export class MarketplaceAPI {
       }
 
       this.accessToken = data.access_token;
-      console.log(
-        "[Auth] Successfully authenticated, token:",
-        this.accessToken.slice(0, 10) + "..."
-      );
     } catch (error) {
       console.error("[Marketplace API] Authentication error:", error);
       throw new Error(
@@ -185,17 +175,9 @@ export class MarketplaceAPI {
     dealerId: string,
     page = 1,
     pageSize = 100
-  ): Promise<DealerVehiclesResponse> {
+  ): Promise<DealerVehicle[]> {
     const organizationId = await this.getOrganizationId();
     const headers = await this.getHeaders();
-
-    console.log("[Vehicles] Request details:", {
-      url: `${this.baseUrl}/organizations/${organizationId}/dealers/${dealerId}/vehicles?page=${page}&pageSize=${pageSize}`,
-      headers: {
-        ...headers,
-        Authorization: headers.Authorization.slice(0, 15) + "...", // only log start of token
-      },
-    });
 
     const response = await fetch(
       `${this.baseUrl}/organizations/${organizationId}/dealers/${dealerId}/vehicles?page=${page}&pageSize=${pageSize}`,
@@ -205,12 +187,6 @@ export class MarketplaceAPI {
     );
 
     const responseText = await response.text();
-    console.log("[Vehicles] Response:", {
-      status: response.status,
-      statusText: response.statusText,
-      body: responseText,
-    });
-
     if (!response.ok) {
       throw new Error(
         `Failed to fetch dealer vehicles: ${response.status} - ${responseText}`

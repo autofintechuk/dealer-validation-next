@@ -283,7 +283,7 @@ export default function ClientPage() {
       <header className="bg-gray-900 border-b border-gray-800">
         <div className="max-w-6xl mx-auto px-3 py-4 flex justify-between items-center">
           <h1 className="text-xl font-semibold text-white tracking-tight">
-            Dashboard
+            Dealer Validator
           </h1>
           <form action={handleLogout}>
             <button
@@ -366,39 +366,40 @@ export default function ClientPage() {
         </div>
 
         <div className="flex items-center gap-4 mb-8">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50"
-            onClick={() => handleExport("all-vehicles")}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export All Vehicles
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50"
-            onClick={() => handleExport("all-dealers")}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export Dealers
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50"
-            onClick={() => handleExport("vehicles-with-issues")}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export Issues
-          </Button>
+          <div className="w-full overflow-x-auto flex gap-4 pb-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+              onClick={() => handleExport("all-vehicles")}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export All Vehicles
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+              onClick={() => handleExport("all-dealers")}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export Dealers
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+              onClick={() => handleExport("vehicles-with-issues")}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export Issues
+            </Button>
+          </div>
         </div>
 
-        <h1 className="text-2xl font-bold mb-6 text-gray-900 tracking-tight">
-          Dealer Validation
-        </h1>
-        <DealersTable dealers={dealers || []} />
+        <div className="overflow-x-auto -mx-3 px-3">
+          <DealersTable dealers={dealers || []} />
+        </div>
       </main>
     </div>
   );

@@ -85,8 +85,8 @@ export function DealerDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-50 p-0">
-        <DialogHeader className="px-6 py-4 bg-gray-900 text-white border-b border-gray-800">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-50 p-0 w-[95vw]">
+        <DialogHeader className="px-4 sm:px-6 py-4 bg-gray-900 text-white border-b border-gray-800">
           <DialogTitle className="text-xl font-semibold tracking-tight">
             {dealer.dealer.name}
             <div className="text-sm font-normal text-gray-400 mt-1">
@@ -101,7 +101,7 @@ export function DealerDetailsModal({
           onValueChange={handleTabChange}
           className="w-full"
         >
-          <div className="px-6 pt-4">
+          <div className="px-4 sm:px-6 pt-4">
             <TabsList className="grid w-full grid-cols-2 bg-gray-100">
               <TabsTrigger value="issues" className="font-medium">
                 Issues
@@ -112,7 +112,7 @@ export function DealerDetailsModal({
             </TabsList>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <TabsContent value="issues" className="space-y-4 mt-0">
               <div className="grid gap-4 md:grid-cols-2">
                 <Card className="bg-gray-900 border-gray-800">
@@ -168,11 +168,11 @@ export function DealerDetailsModal({
                 </Card>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 overflow-x-auto pb-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50"
+                  className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50 whitespace-nowrap"
                   onClick={() => {
                     const params = new URLSearchParams({
                       type: "dealer-vehicles",
@@ -187,7 +187,7 @@ export function DealerDetailsModal({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50"
+                  className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50 whitespace-nowrap"
                   onClick={() => {
                     const params = new URLSearchParams({
                       type: "dealer-issues",
@@ -256,22 +256,28 @@ export function DealerDetailsModal({
                   </div>
                 </div>
               ) : (
-                <div className="bg-white rounded-md border border-gray-200 shadow-sm min-h-[600px]">
+                <div className="bg-white rounded-md border border-gray-200 shadow-sm min-h-[600px] overflow-x-auto">
                   <Table>
                     <TableHeader className="bg-gray-50">
                       <TableRow>
-                        <TableHead className="font-semibold">VRM</TableHead>
-                        <TableHead className="font-semibold">Vehicle</TableHead>
-                        <TableHead className="font-semibold text-right">
+                        <TableHead className="font-semibold whitespace-nowrap">
+                          VRM
+                        </TableHead>
+                        <TableHead className="font-semibold whitespace-nowrap">
+                          Vehicle
+                        </TableHead>
+                        <TableHead className="font-semibold text-right whitespace-nowrap">
                           Price
                         </TableHead>
-                        <TableHead className="font-semibold text-right">
+                        <TableHead className="font-semibold text-right whitespace-nowrap">
                           Mileage
                         </TableHead>
-                        <TableHead className="font-semibold text-center">
+                        <TableHead className="font-semibold text-center whitespace-nowrap">
                           Images
                         </TableHead>
-                        <TableHead className="font-semibold">Status</TableHead>
+                        <TableHead className="font-semibold whitespace-nowrap">
+                          Status
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -297,26 +303,26 @@ export function DealerDetailsModal({
                               !isActive && "bg-gray-50/50"
                             )}
                           >
-                            <TableCell className="font-mono text-sm">
+                            <TableCell className="font-mono text-sm whitespace-nowrap">
                               {vehicle.vehicle.vehicleRegistrationMark}
                             </TableCell>
                             <TableCell>
-                              <div className="font-medium tracking-tight">
+                              <div className="font-medium tracking-tight whitespace-nowrap">
                                 {vehicle.vehicle.build.make}{" "}
                                 {vehicle.vehicle.build.model}
                               </div>
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-sm text-muted-foreground whitespace-nowrap">
                                 {vehicle.vehicle.build.year} •{" "}
                                 {vehicle.vehicle.build.variant}
                               </div>
                             </TableCell>
-                            <TableCell className="text-right font-medium">
+                            <TableCell className="text-right font-medium whitespace-nowrap">
                               £{vehicle.vehicle.price.toLocaleString()}
                             </TableCell>
-                            <TableCell className="text-right font-medium">
+                            <TableCell className="text-right font-medium whitespace-nowrap">
                               {vehicle.vehicle.miles.toLocaleString()}
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center whitespace-nowrap">
                               <Badge
                                 variant={
                                   hasEnoughImages ? "outline" : "destructive"
@@ -326,7 +332,7 @@ export function DealerDetailsModal({
                                 {imageCount}
                               </Badge>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <div className="space-y-1">
                                 <Badge
                                   variant={isActive ? "default" : "secondary"}

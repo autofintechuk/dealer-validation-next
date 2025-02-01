@@ -1,10 +1,10 @@
 import { cookies } from "next/headers";
+import { env } from "@/env";
 
-const FIXED_PASSWORD = "admin123"; // In real apps, use env variables and proper hashing
 const SESSION_COOKIE = "auth_session";
 
 export async function validatePassword(password: string) {
-  return password === FIXED_PASSWORD;
+  return password === env.AUTH_PASSWORD;
 }
 
 export async function setAuthCookie() {

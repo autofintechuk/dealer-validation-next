@@ -98,6 +98,10 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
   // Memoize handlers
   const handleDealerClick = useCallback(
     (dealer: DealerWithStats) => {
+      // Don't open dealer page if text is selected
+      if (window.getSelection()?.toString()) {
+        return;
+      }
       setSelectedDealer(dealer);
       router.push(`?dealer=${dealer.marketcheckDealerId}`);
     },
@@ -367,7 +371,7 @@ export default function ClientPage() {
           </div>
         </header>
         <main className="max-w-6xl mx-auto px-3 py-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatsCardSkeleton />
             <StatsCardSkeleton />
             <StatsCardSkeleton />
@@ -416,7 +420,7 @@ export default function ClientPage() {
         </div>
       </header>
       <main className="max-w-6xl mx-auto px-3 py-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold text-gray-100 tracking-tight">

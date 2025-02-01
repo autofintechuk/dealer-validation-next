@@ -6,11 +6,13 @@ export const env = createEnv({
     MARKETPLACE_API_URL: z.string().url(),
     MARKETPLACE_CLIENT_ID: z.string().min(1),
     MARKETPLACE_CLIENT_SECRET: z.string().min(1),
+    AUTH_PASSWORD: z.string().min(1),
   },
   client: {},
   runtimeEnv: {
     MARKETPLACE_API_URL: process.env.MARKETPLACE_API_URL,
     MARKETPLACE_CLIENT_ID: process.env.MARKETPLACE_CLIENT_ID,
     MARKETPLACE_CLIENT_SECRET: process.env.MARKETPLACE_CLIENT_SECRET,
+    AUTH_PASSWORD: process.env.AUTH_PASSWORD,
   },
 });

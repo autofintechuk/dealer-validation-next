@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { marketplaceAPI } from "@/lib/marketplace-api/server";
 
-type Props = {
-  params: { dealerId: string };
-};
-
-export async function GET(request: NextRequest, { params }: Props) {
-  const { dealerId } = await Promise.resolve(params);
+export async function GET(request: NextRequest) {
+  const dealerId = request.nextUrl.searchParams.get("dealerId");
 
   try {
     if (!dealerId) {

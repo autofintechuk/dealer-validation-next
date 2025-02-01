@@ -10,7 +10,7 @@ async function fetchDealers() {
 }
 
 async function fetchDealerVehicles(dealerId: string) {
-  const response = await fetch(`/api/dealers/${dealerId}/vehicles`);
+  const response = await fetch(`/api/dealers/vehicles?dealerId=${dealerId}`);
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.details || "Failed to fetch vehicles");

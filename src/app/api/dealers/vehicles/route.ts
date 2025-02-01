@@ -2,19 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { marketplaceAPI } from "@/lib/marketplace-api/server";
 
 export async function GET(request: NextRequest) {
-  const dealerId = request.nextUrl.searchParams.get("dealerId");
-
   try {
+    const searchParams = request.nextUrl.searchParams;
+    const page = Number(searchParams.get("page")) || 1;
+    const pageSize = Number(searchParams.get("pageSize")) || 100;
+    const dealerId = searchParams.get("dealerId");
+
     if (!dealerId) {
       return NextResponse.json(
         { error: "Dealer ID is required" },
         { status: 400 }
       );
     }
-
-    const searchParams = request.nextUrl.searchParams;
-    const page = Number(searchParams.get("page")) || 1;
-    const pageSize = Number(searchParams.get("pageSize")) || 100;
 
     const vehicles = await marketplaceAPI.getDealerVehicles(
       dealerId,
@@ -26,11 +25,9 @@ export async function GET(request: NextRequest) {
     console.error("[API Error] Failed to fetch dealer vehicles:", {
       error,
       stack: error instanceof Error ? error.stack : undefined,
-      dealerId,
       headers: Object.fromEntries(request.headers.entries()),
     });
 
-    // Check if it's an authentication error
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (
       errorMessage.includes("Authentication failed") ||

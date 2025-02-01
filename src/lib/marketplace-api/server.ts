@@ -57,7 +57,7 @@ export class MarketplaceAPI {
     }
   }
 
-  private async getHeaders() {
+  async getHeaders() {
     try {
       if (!this.accessToken) {
         await this.authenticate();
@@ -77,7 +77,7 @@ export class MarketplaceAPI {
     }
   }
 
-  private async getOrganizationId() {
+  async getOrganizationId() {
     if (this.organizationId) return this.organizationId;
 
     const response = await fetch(`${this.baseUrl}/organizations`, {

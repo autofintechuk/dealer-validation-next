@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
   const [selectedDealer, setSelectedDealer] = useState<DealerWithStats | null>(
@@ -117,6 +119,15 @@ export default function ClientPage() {
   const { data: dealers, isLoading, error } = useDealers();
   const { data: stats } = useDealerStats();
 
+  const handleExport = async (type: string, dealerId?: string) => {
+    const params = new URLSearchParams({ type });
+    if (dealerId) {
+      params.append("dealerId", dealerId);
+    }
+
+    window.location.href = `/api/export?${params.toString()}`;
+  };
+
   if (isLoading) {
     return (
       <div className="text-center py-4 font-medium">Loading dealers...</div>
@@ -216,6 +227,36 @@ export default function ClientPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="flex items-center gap-4 mb-8">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50"
+            onClick={() => handleExport("all-vehicles")}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export All Vehicles
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50"
+            onClick={() => handleExport("all-dealers")}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export Dealers
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50"
+            onClick={() => handleExport("vehicles-with-issues")}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export Issues
+          </Button>
         </div>
 
         <h1 className="text-2xl font-bold mb-6 text-gray-900 tracking-tight">

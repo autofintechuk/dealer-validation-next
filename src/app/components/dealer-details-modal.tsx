@@ -20,6 +20,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DealerDetailsModalProps {
@@ -74,7 +76,7 @@ export function DealerDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-gray-50 p-0">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-50 p-0">
         <DialogHeader className="px-6 py-4 bg-gray-900 text-white border-b border-gray-800">
           <DialogTitle className="text-xl font-semibold tracking-tight">
             {dealer.dealer.name}
@@ -151,6 +153,39 @@ export function DealerDetailsModal({
                     </Badge>
                   </CardContent>
                 </Card>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      type: "dealer-vehicles",
+                      dealerId: dealer.marketcheckDealerId,
+                    });
+                    window.location.href = `/api/export?${params.toString()}`;
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export All Vehicles
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-gray-700 hover:text-gray-900 border-gray-300 hover:bg-gray-50"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      type: "dealer-issues",
+                      dealerId: dealer.marketcheckDealerId,
+                    });
+                    window.location.href = `/api/export?${params.toString()}`;
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Issues
+                </Button>
               </div>
 
               <Card className="border-gray-200">

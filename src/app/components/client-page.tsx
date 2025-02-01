@@ -2,9 +2,10 @@
 
 import { type DealerWithStats } from "@/lib/marketplace-api";
 import { DealerDetailsModal } from "./dealer-details-modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { handleLogout } from "../../lib/actions";
 import { useDealers, useDealerStats } from "@/lib/hooks/use-queries";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -34,6 +35,29 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
   );
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Handle URL-based dealer selection
+  useEffect(() => {
+    const dealerId = searchParams.get("dealer");
+    const dealer = dealerId
+      ? dealers.find((d) => d.marketcheckDealerId === dealerId)
+      : null;
+    if (dealer) {
+      setSelectedDealer(dealer);
+    }
+  }, [dealers, searchParams]);
+
+  const handleDealerClick = (dealer: DealerWithStats) => {
+    setSelectedDealer(dealer);
+    router.push(`?dealer=${dealer.marketcheckDealerId}`);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedDealer(null);
+    router.push("/");
+  };
 
   const columns: ColumnDef<DealerWithStats>[] = [
     {
@@ -202,7 +226,7 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
               <TableRow
                 key={row.id}
                 className="cursor-pointer hover:bg-gray-50"
-                onClick={() => setSelectedDealer(row.original)}
+                onClick={() => handleDealerClick(row.original)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
@@ -218,8 +242,9 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
       {selectedDealer && (
         <DealerDetailsModal
           dealer={selectedDealer}
-          onClose={() => setSelectedDealer(null)}
+          onClose={handleCloseModal}
           open={!!selectedDealer}
+          defaultTab={searchParams.get("tab") || "issues"}
         />
       )}
     </>

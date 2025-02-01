@@ -23,11 +23,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface DealerDetailsModalProps {
   dealer: DealerWithStats;
   onClose: () => void;
   open: boolean;
+  defaultTab?: string;
 }
 
 interface VehicleIssue {
@@ -40,8 +42,10 @@ export function DealerDetailsModal({
   dealer,
   onClose,
   open,
+  defaultTab = "issues",
 }: DealerDetailsModalProps) {
-  const [activeTab, setActiveTab] = useState("issues");
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  const router = useRouter();
 
   const {
     data: vehicles = [],
@@ -74,6 +78,11 @@ export function DealerDetailsModal({
     });
   });
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    router.push(`?dealer=${dealer.marketcheckDealerId}&tab=${tab}`);
+  };
+
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-50 p-0">
@@ -87,7 +96,11 @@ export function DealerDetailsModal({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="w-full"
+        >
           <div className="px-6 pt-4">
             <TabsList className="grid w-full grid-cols-2 bg-gray-100">
               <TabsTrigger value="issues" className="font-medium">
@@ -229,17 +242,21 @@ export function DealerDetailsModal({
 
             <TabsContent value="vehicles" className="mt-0">
               {isLoading ? (
-                <div className="text-center py-8 text-gray-600 font-medium">
-                  Loading vehicles...
+                <div className="bg-white rounded-md border border-gray-200 shadow-sm min-h-[600px] flex items-center justify-center">
+                  <div className="text-gray-600 font-medium">
+                    Loading vehicles...
+                  </div>
                 </div>
               ) : error ? (
-                <div className="text-center py-8 text-red-600 font-medium">
-                  {error instanceof Error
-                    ? error.message
-                    : "Failed to fetch vehicles"}
+                <div className="bg-white rounded-md border border-gray-200 shadow-sm min-h-[600px] flex items-center justify-center">
+                  <div className="text-red-600 font-medium">
+                    {error instanceof Error
+                      ? error.message
+                      : "Failed to fetch vehicles"}
+                  </div>
                 </div>
               ) : (
-                <div className="bg-white rounded-md border border-gray-200 shadow-sm">
+                <div className="bg-white rounded-md border border-gray-200 shadow-sm min-h-[600px]">
                   <Table>
                     <TableHeader className="bg-gray-50">
                       <TableRow>

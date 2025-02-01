@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  type DealerWithStats,
-  type DealerVehicle,
-} from "@/lib/marketplace-api";
+import { type DealerWithStats } from "@/lib/marketplace-api";
 import { useState } from "react";
 import { useDealerVehicles } from "@/lib/hooks/use-queries";
 import {

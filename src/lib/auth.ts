@@ -4,7 +4,8 @@ import { env } from "@/env";
 const SESSION_COOKIE = "auth_session";
 
 export async function validatePassword(password: string) {
-  return password === env.AUTH_PASSWORD;
+  const validPasswords = env.AUTH_PASSWORD.split(",").map((p) => p.trim());
+  return validPasswords.includes(password);
 }
 
 export async function setAuthCookie() {

@@ -6,7 +6,13 @@ export const env = createEnv({
     MARKETPLACE_API_URL: z.string().url(),
     MARKETPLACE_CLIENT_ID: z.string().min(1),
     MARKETPLACE_CLIENT_SECRET: z.string().min(1),
-    AUTH_PASSWORD: z.string().min(1),
+    AUTH_PASSWORD: z
+      .string()
+      .min(1)
+      .refine((val) => {
+        // Ensure each password is at least 1 character long after trimming
+        return val.split(",").every((p) => p.trim().length >= 1);
+      }, "Each password must be at least 1 character long"),
   },
   client: {},
   runtimeEnv: {

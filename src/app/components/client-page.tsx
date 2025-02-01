@@ -16,88 +16,199 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, ArrowUpDown, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  type ColumnDef,
+  type SortingState,
+  flexRender,
+} from "@tanstack/react-table";
 
 function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
   const [selectedDealer, setSelectedDealer] = useState<DealerWithStats | null>(
     null
   );
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+
+  const columns: ColumnDef<DealerWithStats>[] = [
+    {
+      accessorKey: "dealer.name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="p-0 hover:bg-transparent"
+          >
+            Dealer Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium tracking-tight">
+          {row.original.dealer.name || "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "dealer.website",
+      header: "Website",
+      cell: ({ row }) => (
+        <div className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+          {row.original.dealer.website || "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "marketcheckDealerId",
+      header: "Dealer ID",
+      cell: ({ row }) => (
+        <div className="font-mono text-sm">
+          {row.original.marketcheckDealerId}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "dealer.zipcode",
+      header: "Postcode",
+      cell: ({ row }) => row.original.dealer.zipcode || "-",
+    },
+    {
+      accessorKey: "listingOverview.Total number of stocks in marketcheck",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="p-0 hover:bg-transparent"
+          >
+            Total Stock
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="text-right font-medium">
+          {row.original.listingOverview
+            ? row.original.listingOverview[
+                "Total number of stocks in marketcheck"
+              ]
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey:
+        "listingOverview.Total number of vehicles currently advertised",
+      header: "Advertised",
+      cell: ({ row }) => (
+        <div className="text-right font-medium">
+          {row.original.listingOverview
+            ? row.original.listingOverview[
+                "Total number of vehicles currently advertised"
+              ]
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey:
+        "listingOverview.Vehicles not advertised due to specific criteria.count",
+      header: "Not Advertised",
+      cell: ({ row }) => (
+        <div className="text-right font-medium">
+          {row.original.listingOverview
+            ? row.original.listingOverview[
+                "Vehicles not advertised due to specific criteria"
+              ].count
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey:
+        "listingOverview.Vehicles not advertised due to last seen time more than 48 hours.count",
+      header: "Expired (48h+)",
+      cell: ({ row }) => (
+        <div className="text-right">
+          <Badge variant="destructive" className="font-medium">
+            {row.original.listingOverview
+              ? row.original.listingOverview[
+                  "Vehicles not advertised due to last seen time more than 48 hours"
+                ].count
+              : "0"}
+          </Badge>
+        </div>
+      ),
+    },
+  ];
+
+  const table = useReactTable({
+    data: dealers,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
+    state: {
+      sorting,
+      globalFilter,
+    },
+    onGlobalFilterChange: setGlobalFilter,
+  });
 
   return (
     <>
+      <div className="flex items-center mb-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+          <Input
+            placeholder="Search dealers..."
+            value={globalFilter}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setGlobalFilter(e.target.value)
+            }
+            className="pl-8"
+          />
+        </div>
+      </div>
+
       <div className="rounded-md border bg-white shadow-sm">
         <Table>
           <TableHeader className="bg-gray-50">
             <TableRow>
-              <TableHead className="font-semibold">Dealer Name</TableHead>
-              <TableHead className="font-semibold">Website</TableHead>
-              <TableHead className="font-semibold">Dealer ID</TableHead>
-              <TableHead className="font-semibold">Postcode</TableHead>
-              <TableHead className="font-semibold text-right">
-                Total Stock
-              </TableHead>
-              <TableHead className="font-semibold text-right">
-                Advertised
-              </TableHead>
-              <TableHead className="font-semibold text-right">
-                Not Advertised
-              </TableHead>
-              <TableHead className="font-semibold text-right">
-                Expired (48h+)
-              </TableHead>
+              {table.getHeaderGroups().map((headerGroup) =>
+                headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="font-semibold">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {dealers.map((dealer) => (
+            {table.getRowModel().rows.map((row) => (
               <TableRow
-                key={dealer.id}
+                key={row.id}
                 className="cursor-pointer hover:bg-gray-50"
-                onClick={() => setSelectedDealer(dealer)}
+                onClick={() => setSelectedDealer(row.original)}
               >
-                <TableCell>
-                  <div className="font-medium tracking-tight">
-                    {dealer.dealer.name || "-"}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    {dealer.dealer.website || "-"}
-                  </div>
-                </TableCell>
-                <TableCell className="font-mono text-sm">
-                  {dealer.marketcheckDealerId}
-                </TableCell>
-                <TableCell>{dealer.dealer.zipcode || "-"}</TableCell>
-                <TableCell className="text-right font-medium">
-                  {dealer.listingOverview
-                    ? dealer.listingOverview[
-                        "Total number of stocks in marketcheck"
-                      ]
-                    : "-"}
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {dealer.listingOverview
-                    ? dealer.listingOverview[
-                        "Total number of vehicles currently advertised"
-                      ]
-                    : "-"}
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {dealer.listingOverview
-                    ? dealer.listingOverview[
-                        "Vehicles not advertised due to specific criteria"
-                      ].count
-                    : "-"}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Badge variant="destructive" className="font-medium">
-                    {dealer.listingOverview
-                      ? dealer.listingOverview[
-                          "Vehicles not advertised due to last seen time more than 48 hours"
-                        ].count
-                      : "0"}
-                  </Badge>
-                </TableCell>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
               </TableRow>
             ))}
           </TableBody>

@@ -23,6 +23,9 @@ export function useDealers() {
     queryKey: ["dealers"],
     queryFn: fetchDealers,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+    refetchOnWindowFocus: false,
+    retry: 2,
   });
 }
 
@@ -32,6 +35,9 @@ export function useDealerVehicles(dealerId: string, enabled: boolean = true) {
     queryFn: () => fetchDealerVehicles(dealerId),
     enabled,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+    refetchOnWindowFocus: false,
+    retry: 2,
   });
 }
 
@@ -49,31 +55,19 @@ function calculateStats(dealers: DealerWithStats[]): DealerStats {
     totalDealers: dealers.length,
     activeDealers: dealers.filter((d) => d.status === "active").length,
     totalVehicles: dealers.reduce(
-      (acc, d) =>
-        acc +
-        (d.listingOverview?.["Total number of stocks in marketcheck"] || 0),
+      (acc, d) => acc + (d.listingOverview?.marketcheckTotalStock || 0),
       0
     ),
     advertisedVehicles: dealers.reduce(
-      (acc, d) =>
-        acc +
-        (d.listingOverview?.["Total number of vehicles currently advertised"] ||
-          0),
+      (acc, d) => acc + (d.listingOverview?.advertisedStockQty || 0),
       0
     ),
     notAdvertisedVehicles: dealers.reduce(
-      (acc, d) =>
-        acc +
-        (d.listingOverview?.["Vehicles not advertised due to specific criteria"]
-          .count || 0),
+      (acc, d) => acc + (d.listingOverview?.notAdvertisedCriteria.count || 0),
       0
     ),
     notAdvertisedDueToLastSeen: dealers.reduce(
-      (acc, d) =>
-        acc +
-        (d.listingOverview?.[
-          "Vehicles not advertised due to last seen time more than 48 hours"
-        ].count || 0),
+      (acc, d) => acc + (d.listingOverview?.notAdvertisedExpired.count || 0),
       0
     ),
   };
@@ -93,11 +87,14 @@ export function useDealerStats() {
           advertisedVehicles: 0,
           notAdvertisedVehicles: 0,
           notAdvertisedDueToLastSeen: 0,
-        };
+        } as DealerStats;
       }
 
       return calculateStats(dealers);
     },
     enabled: !!dealers,
+    gcTime: 1000 * 60 * 30, // 30 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 }

@@ -3,8 +3,9 @@ import type {
   AuthResponse,
   DealerVehicle,
   DealerWithStats,
-  ListingOverview,
   Organization,
+  DealerListingStats,
+  ListingByDealerResponse,
 } from "./types";
 
 export class MarketplaceAPI {
@@ -80,15 +81,27 @@ export class MarketplaceAPI {
   async getOrganizationId() {
     if (this.organizationId) return this.organizationId;
 
+    console.log(
+      "Fetching organizations from:",
+      `${this.baseUrl}/organizations`
+    );
     const response = await fetch(`${this.baseUrl}/organizations`, {
       headers: await this.getHeaders(),
     });
 
     if (!response.ok) {
+      const text = await response.text();
+      console.error("Organizations API Error:", {
+        status: response.status,
+        statusText: response.statusText,
+        body: text,
+      });
       throw new Error("Failed to fetch organization");
     }
 
     const data: Organization = await response.json();
+    console.log("Organizations API Response:", data);
+
     if (!data.data.length) {
       throw new Error("No organizations found");
     }
@@ -108,23 +121,89 @@ export class MarketplaceAPI {
     totalPages: number;
   }> {
     const organizationId = await this.getOrganizationId();
-    const response = await fetch(
-      `${this.baseUrl}/Organizations/${organizationId}/dealers?page=${page}&pageSize=${pageSize}`,
-      {
-        headers: await this.getHeaders(),
-      }
-    );
+    console.log("Organization ID:", organizationId);
+
+    const headers = await this.getHeaders();
+    console.log("Request Headers:", headers);
+
+    const url = `${this.baseUrl}/Organizations/${organizationId}/dealers?page=${page}&pageSize=${pageSize}`;
+    console.log("Request URL:", url);
+
+    const response = await fetch(url, {
+      headers: await this.getHeaders(),
+    });
 
     if (!response.ok) {
+      const text = await response.text();
+      console.error("Dealers API Error:", {
+        status: response.status,
+        statusText: response.statusText,
+        body: text,
+      });
       throw new Error("Failed to fetch dealers");
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log("Raw Dealers API Response:", data);
+    return data;
   }
 
-  async getListingOverview(dealerId: string): Promise<ListingOverview> {
+  async getDealersWithStats(
+    page = 1,
+    pageSize = 100
+  ): Promise<DealerWithStats[]> {
+    try {
+      const [dealersResponse, listingResponse] = await Promise.all([
+        this.getDealers(page, pageSize),
+        this.getListingByDealer(),
+      ]);
+
+      const dealerStatsMap = new Map<number, DealerListingStats>(
+        listingResponse.dealers.map((d) => [d.dealerId, d])
+      );
+
+      const mappedDealers = dealersResponse.data.map((dealer) => {
+        const stats = dealerStatsMap.get(Number(dealer.marketcheckDealerId));
+        return {
+          ...dealer,
+          listingOverview: {
+            dealerId: Number(dealer.marketcheckDealerId),
+            advertisedStockQty: stats?.advertisedStockQty || 0,
+            notAdvertisedCriteria: {
+              count: stats?.notAdvertisedCriteria.count || 0,
+              warnings: stats?.notAdvertisedCriteria.warnings || [],
+            },
+            notAdvertisedExpired: {
+              count: stats?.notAdvertisedExpired.count || 0,
+              details: stats?.notAdvertisedExpired.details || [],
+            },
+            notAdvertisedOther: stats?.notAdvertisedOther || 0,
+            stockOver30Days: stats?.stockOver30Days || {
+              numberOfAllStock: 0,
+              numberOfActiveStock: 0,
+            },
+            stockOver45Days: stats?.stockOver45Days || {
+              numberOfAllStock: 0,
+              numberOfActiveStock: 0,
+            },
+            marketcheckTotalStock: stats?.marketcheckTotalStock || 0,
+          },
+        };
+      });
+
+      return mappedDealers;
+    } catch (error) {
+      console.error(
+        "[Marketplace API] Failed to fetch dealers with stats:",
+        error
+      );
+      throw error;
+    }
+  }
+
+  private async getListingByDealer(): Promise<ListingByDealerResponse> {
     const response = await fetch(
-      `${this.baseUrl}/listingOverview/listing_overview/dealer/${dealerId}`,
+      `${this.baseUrl}/listingOverview/listing_by_dealer`,
       {
         headers: await this.getHeaders(),
       }
@@ -133,42 +212,7 @@ export class MarketplaceAPI {
     if (!response.ok) {
       throw new Error("Failed to fetch listing overview");
     }
-
     return response.json();
-  }
-
-  async getDealersWithStats(
-    page = 1,
-    pageSize = 100
-  ): Promise<DealerWithStats[]> {
-    try {
-      const dealersResponse = await this.getDealers(page, pageSize);
-      const dealers = dealersResponse.data;
-
-      const dealersWithStats = await Promise.all(
-        dealers.map(async (dealer) => {
-          try {
-            const listingOverview = await this.getListingOverview(
-              dealer.marketcheckDealerId
-            );
-            return { ...dealer, listingOverview };
-          } catch (error) {
-            console.error(
-              `[Marketplace API] Failed to fetch listing overview for dealer ${dealer.marketcheckDealerId}:`,
-              error
-            );
-            return { ...dealer, listingOverview: undefined };
-          }
-        })
-      );
-      return dealersWithStats;
-    } catch (error) {
-      console.error(
-        "[Marketplace API] Failed to fetch dealers with stats:",
-        error
-      );
-      throw error;
-    }
   }
 
   async getDealerVehicles(

@@ -45,7 +45,7 @@ interface DealerDetailsModalProps {
 
 interface VehicleIssue {
   vehicleId: string;
-  criteria?: string[];
+  criteria?: string | string[];
   lastSeen?: string;
 }
 
@@ -141,19 +141,19 @@ export function DealerDetailsModal({
     const issues = new Map<string, VehicleIssue>();
 
     // Add criteria warnings
-    dealer.listingOverview?.[
-      "Vehicles not advertised due to specific criteria"
-    ].warnings?.forEach((warning) => {
-      issues.set(warning.vehicleId, {
-        vehicleId: warning.vehicleId,
-        criteria: warning.warningMsg,
-      });
-    });
+    dealer.listingOverview?.notAdvertisedCriteria?.warnings?.forEach(
+      (warning) => {
+        issues.set(warning.vehicleId, {
+          vehicleId: warning.vehicleId,
+          criteria: Array.isArray(warning.warningMsg)
+            ? warning.warningMsg.join(", ")
+            : warning.warningMsg,
+        });
+      }
+    );
 
     // Add last seen issues and merge with existing criteria if any
-    dealer.listingOverview?.[
-      "Vehicles not advertised due to last seen time more than 48 hours"
-    ].details?.forEach((detail) => {
+    dealer.listingOverview?.notAdvertisedExpired?.details?.forEach((detail) => {
       const existing = issues.get(detail.vehicleId);
       issues.set(detail.vehicleId, {
         vehicleId: detail.vehicleId,
@@ -354,7 +354,9 @@ export function DealerDetailsModal({
           rows.push({
             vrm: issue.vehicleId,
             issueType: "criteria",
-            issueDetail: issue.criteria.join(", "),
+            issueDetail: Array.isArray(issue.criteria)
+              ? issue.criteria.join(", ")
+              : issue.criteria,
           });
         }
 
@@ -386,6 +388,7 @@ export function DealerDetailsModal({
     globalFilterFn,
   });
 
+  // Update issuesTableInstance to use filteredIssueRows
   const issuesTableInstance = useReactTable({
     data: issueRows,
     columns: issueColumns,
@@ -451,9 +454,7 @@ export function DealerDetailsModal({
                       variant="outline"
                       className="border-gray-700 text-gray-100 font-medium"
                     >
-                      {dealer.listingOverview?.[
-                        "Total number of stocks in marketcheck"
-                      ] || 0}
+                      {dealer.listingOverview?.notAdvertisedCriteria.count || 0}
                     </Badge>
                   </CardHeader>
                   <CardContent className="flex items-center justify-between">
@@ -464,9 +465,7 @@ export function DealerDetailsModal({
                       variant="outline"
                       className="border-gray-700 text-gray-100 font-medium"
                     >
-                      {dealer.listingOverview?.[
-                        "Total number of vehicles currently advertised"
-                      ] || 0}
+                      {dealer.listingOverview?.notAdvertisedExpired.count || 0}
                     </Badge>
                   </CardContent>
                 </Card>
@@ -477,9 +476,7 @@ export function DealerDetailsModal({
                       Vehicles with Issues
                     </CardTitle>
                     <Badge variant="destructive" className="font-medium">
-                      {dealer.listingOverview?.[
-                        "Vehicles not advertised due to specific criteria"
-                      ].count || 0}
+                      {dealer.listingOverview?.notAdvertisedCriteria.count || 0}
                     </Badge>
                   </CardHeader>
                   <CardContent className="flex items-center justify-between">
@@ -487,9 +484,7 @@ export function DealerDetailsModal({
                       Not seen in 48h+:
                     </div>
                     <Badge variant="destructive" className="font-medium">
-                      {dealer.listingOverview?.[
-                        "Vehicles not advertised due to last seen time more than 48 hours"
-                      ].count || 0}
+                      {dealer.listingOverview?.notAdvertisedExpired.count || 0}
                     </Badge>
                   </CardContent>
                 </Card>

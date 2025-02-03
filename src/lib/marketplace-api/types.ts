@@ -61,21 +61,33 @@ export interface StockCount {
   numberOfActiveStock: number;
 }
 
-export interface ListingOverview {
-  "Total number of stocks in marketcheck": number;
-  "Total number of vehicles currently advertised": number;
-  "Last data sync time": string;
-  "Vehicles not advertised due to specific criteria": {
+export interface DealerListingStats {
+  dealerId: number;
+  advertisedStockQty: number;
+  notAdvertisedCriteria: {
     count: number;
     warnings: VehicleWarning[];
   };
-  "Vehicles not advertised due to last seen time more than 48 hours": {
+  notAdvertisedExpired: {
     count: number;
     details: VehicleLastSeen[];
   };
-  "Vehicles not advertised for other reasons": number;
-  "Vehicles that have been in stock for over 30 days": StockCount;
-  "Vehicles that have been in stock for over 45 days": StockCount;
+  notAdvertisedOther: number;
+  stockOver30Days: StockCount;
+  stockOver45Days: StockCount;
+  marketcheckTotalStock: number;
+}
+
+export interface ListingByDealerResponse {
+  lastDataSyncTime: string;
+  totalAdvertisedStockQty: number;
+  totalNotAdvertisedCriteria: number;
+  totalNotAdvertisedExpired: number;
+  totalNotAdvertisedOther: number;
+  totalStockOver30Days: StockCount;
+  totalStockOver45Days: StockCount;
+  totalMarketcheckStock: number;
+  dealers: DealerListingStats[];
 }
 
 export interface DealerInfo {
@@ -123,6 +135,23 @@ export interface DealerWithStats {
   createdAt: string;
   updatedAt: string;
   listingOverview?: ListingOverview;
+}
+
+export interface ListingOverview {
+  dealerId: number;
+  advertisedStockQty: number;
+  notAdvertisedCriteria: {
+    count: number;
+    warnings: VehicleWarning[];
+  };
+  notAdvertisedExpired: {
+    count: number;
+    details: VehicleLastSeen[];
+  };
+  notAdvertisedOther: number;
+  stockOver30Days: StockCount;
+  stockOver45Days: StockCount;
+  marketcheckTotalStock: number;
 }
 
 export interface VehicleMedia {
@@ -353,6 +382,7 @@ export interface DealerVehicle {
     };
   };
 }
+
 export interface DealersResponse {
   data: Dealer[];
   page: number;

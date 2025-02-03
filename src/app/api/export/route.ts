@@ -58,13 +58,9 @@ export async function GET(request: NextRequest) {
           if (!dealer.listingOverview) return [];
 
           const warnings =
-            dealer.listingOverview[
-              "Vehicles not advertised due to specific criteria"
-            ].warnings;
+            dealer.listingOverview?.notAdvertisedCriteria?.warnings || [];
           const lastSeenIssues =
-            dealer.listingOverview[
-              "Vehicles not advertised due to last seen time more than 48 hours"
-            ].details;
+            dealer.listingOverview?.notAdvertisedExpired?.details || [];
 
           return [
             ...warnings.map((w) => ({
@@ -119,16 +115,14 @@ export async function GET(request: NextRequest) {
         }
 
         const dealerIssues = [
-          ...dealer.listingOverview[
-            "Vehicles not advertised due to specific criteria"
-          ].warnings.map((w) => ({
-            vehicleId: w.vehicleId,
-            issue: w.warningMsg.join("; "),
-            type: "criteria",
-          })),
-          ...dealer.listingOverview[
-            "Vehicles not advertised due to last seen time more than 48 hours"
-          ].details.map((l) => ({
+          ...dealer.listingOverview?.notAdvertisedCriteria?.warnings.map(
+            (w) => ({
+              vehicleId: w.vehicleId,
+              issue: w.warningMsg.join("; "),
+              type: "criteria",
+            })
+          ),
+          ...dealer.listingOverview?.notAdvertisedExpired?.details.map((l) => ({
             vehicleId: l.vehicleId,
             issue: `Last seen: ${l.lastSeen}`,
             type: "last_seen",

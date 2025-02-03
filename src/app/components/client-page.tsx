@@ -178,7 +178,7 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
         ),
       },
       {
-        accessorKey: "listingOverview.Total number of stocks in marketcheck",
+        accessorKey: "listingOverview.marketcheckTotalStock",
         header: ({ column }) => {
           return (
             <div className="text-right">
@@ -197,54 +197,35 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
         },
         cell: ({ row }) => (
           <div className="text-right font-medium">
-            {row.original.listingOverview
-              ? row.original.listingOverview[
-                  "Total number of stocks in marketcheck"
-                ]
-              : "-"}
+            {row.original.listingOverview?.marketcheckTotalStock || "-"}
           </div>
         ),
       },
       {
-        accessorKey:
-          "listingOverview.Total number of vehicles currently advertised",
+        accessorKey: "listingOverview.advertisedStockQty",
         header: () => <div className="text-right">Advertised</div>,
         cell: ({ row }) => (
           <div className="text-right font-medium">
-            {row.original.listingOverview
-              ? row.original.listingOverview[
-                  "Total number of vehicles currently advertised"
-                ]
-              : "-"}
+            {row.original.listingOverview?.advertisedStockQty || "-"}
           </div>
         ),
       },
       {
-        accessorKey:
-          "listingOverview.Vehicles not advertised due to specific criteria.count",
+        accessorKey: "listingOverview.notAdvertisedCriteria.count",
         header: () => <div className="text-right">Not Advertised</div>,
         cell: ({ row }) => (
           <div className="text-right font-medium">
-            {row.original.listingOverview
-              ? row.original.listingOverview[
-                  "Vehicles not advertised due to specific criteria"
-                ].count
-              : "-"}
+            {row.original.listingOverview?.notAdvertisedCriteria.count || "-"}
           </div>
         ),
       },
       {
-        accessorKey:
-          "listingOverview.Vehicles not advertised due to last seen time more than 48 hours.count",
+        accessorKey: "listingOverview.notAdvertisedExpired.count",
         header: () => <div className="text-right">Expired (48h+)</div>,
         cell: ({ row }) => (
           <div className="text-right">
             <Badge variant="destructive" className="font-medium">
-              {row.original.listingOverview
-                ? row.original.listingOverview[
-                    "Vehicles not advertised due to last seen time more than 48 hours"
-                  ].count
-                : "0"}
+              {row.original.listingOverview?.notAdvertisedExpired.count || "0"}
             </Badge>
           </div>
         ),

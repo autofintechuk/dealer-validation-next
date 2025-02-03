@@ -203,7 +203,20 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
       },
       {
         accessorKey: "listingOverview.advertisedStockQty",
-        header: () => <div className="text-right">Advertised</div>,
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Advertised
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        ),
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {row.original.listingOverview?.advertisedStockQty || "-"}
@@ -212,7 +225,20 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
       },
       {
         accessorKey: "listingOverview.notAdvertisedCriteria.count",
-        header: () => <div className="text-right">Not Advertised</div>,
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Not Advertised
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        ),
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {row.original.listingOverview?.notAdvertisedCriteria.count || "-"}
@@ -221,7 +247,20 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
       },
       {
         accessorKey: "listingOverview.notAdvertisedExpired.count",
-        header: () => <div className="text-right">Expired (48h+)</div>,
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Expired (48h+)
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        ),
         cell: ({ row }) => (
           <div className="text-right">
             <Badge variant="destructive" className="font-medium">

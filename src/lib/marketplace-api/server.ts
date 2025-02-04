@@ -81,10 +81,6 @@ export class MarketplaceAPI {
   async getOrganizationId() {
     if (this.organizationId) return this.organizationId;
 
-    console.log(
-      "Fetching organizations from:",
-      `${this.baseUrl}/organizations`
-    );
     const response = await fetch(`${this.baseUrl}/organizations`, {
       headers: await this.getHeaders(),
     });
@@ -100,7 +96,6 @@ export class MarketplaceAPI {
     }
 
     const data: Organization = await response.json();
-    console.log("Organizations API Response:", data);
 
     if (!data.data.length) {
       throw new Error("No organizations found");
@@ -121,13 +116,8 @@ export class MarketplaceAPI {
     totalPages: number;
   }> {
     const organizationId = await this.getOrganizationId();
-    console.log("Organization ID:", organizationId);
-
-    const headers = await this.getHeaders();
-    console.log("Request Headers:", headers);
 
     const url = `${this.baseUrl}/Organizations/${organizationId}/dealers?page=${page}&pageSize=${pageSize}`;
-    console.log("Request URL:", url);
 
     const response = await fetch(url, {
       headers: await this.getHeaders(),
@@ -144,7 +134,6 @@ export class MarketplaceAPI {
     }
 
     const data = await response.json();
-    console.log("Raw Dealers API Response:", data);
     return data;
   }
 
@@ -187,6 +176,7 @@ export class MarketplaceAPI {
               numberOfActiveStock: 0,
             },
             marketcheckTotalStock: stats?.marketcheckTotalStock || 0,
+            categorizedVehicles: stats?.categorizedVehicles || [],
           },
         };
       });

@@ -72,6 +72,10 @@ export interface DealerListingStats {
     count: number;
     details: VehicleLastSeen[];
   };
+  categorizedVehicles: {
+    vehicleId: string;
+    writeOffCategory: string;
+  }[];
   notAdvertisedOther: number;
   stockOver30Days: StockCount;
   stockOver45Days: StockCount;
@@ -152,6 +156,10 @@ export interface ListingOverview {
   stockOver30Days: StockCount;
   stockOver45Days: StockCount;
   marketcheckTotalStock: number;
+  categorizedVehicles?: {
+    vehicleId: string;
+    writeOffCategory: string;
+  }[];
 }
 
 export interface VehicleMedia {

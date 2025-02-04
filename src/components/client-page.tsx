@@ -3,7 +3,7 @@
 import { type DealerWithStats } from "@/lib/marketplace-api";
 import { DealerDetailsModal } from "./dealer-details-modal";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { handleLogout } from "../../lib/actions";
+import { handleLogout } from "../lib/actions";
 import { useDealers, useDealerStats } from "@/lib/hooks/use-queries";
 import { useRouter, useSearchParams } from "next/navigation";
 import {

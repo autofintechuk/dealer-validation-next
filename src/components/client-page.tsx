@@ -118,22 +118,20 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
     () => [
       {
         accessorKey: "dealer.name",
-        header: ({ column }) => {
-          return (
-            <div className="text-left">
-              <Button
-                variant="ghost"
-                onClick={() =>
-                  column.toggleSorting(column.getIsSorted() === "asc")
-                }
-                className="p-0 hover:bg-transparent"
-              >
-                Dealer Name
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          );
-        },
+        header: ({ column }) => (
+          <div className="text-left">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Dealer Name
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
         cell: ({ row }) => (
           <div className="font-medium tracking-tight">
             {row.original.dealer.name || "-"}
@@ -169,32 +167,43 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
         ),
       },
       {
-        accessorKey: "dealer.zipcode",
-        header: "Postcode",
+        accessorKey: "listingOverview.databaseTotalStock",
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Database Stock
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
         cell: ({ row }) => (
-          <div className="font-medium">
-            {row.original.dealer.zipcode || "-"}
+          <div className="text-right font-medium">
+            {row.original.listingOverview?.totalDatabaseStock || "-"}
           </div>
         ),
       },
       {
         accessorKey: "listingOverview.marketcheckTotalStock",
-        header: ({ column }) => {
-          return (
-            <div className="text-right">
-              <Button
-                variant="ghost"
-                onClick={() =>
-                  column.toggleSorting(column.getIsSorted() === "asc")
-                }
-                className="p-0 hover:bg-transparent"
-              >
-                Total Stock
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          );
-        },
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Total Stock(MC)
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {row.original.listingOverview?.marketcheckTotalStock || "-"}
@@ -213,7 +222,7 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
               className="p-0 hover:bg-transparent"
             >
               Advertised
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown className="h-4 w-4" />
             </Button>
           </div>
         ),
@@ -235,7 +244,7 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
               className="p-0 hover:bg-transparent"
             >
               Not Advertised
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown className="h-4 w-4" />
             </Button>
           </div>
         ),
@@ -257,7 +266,7 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
               className="p-0 hover:bg-transparent"
             >
               Expired (48h+)
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown className="h-4 w-4" />
             </Button>
           </div>
         ),

@@ -80,6 +80,7 @@ export interface DealerListingStats {
   stockOver30Days: StockCount;
   stockOver45Days: StockCount;
   marketcheckTotalStock: number;
+  DatabaseStock: number;
 }
 
 export interface ListingByDealerResponse {
@@ -91,6 +92,7 @@ export interface ListingByDealerResponse {
   totalStockOver30Days: StockCount;
   totalStockOver45Days: StockCount;
   totalMarketcheckStock: number;
+  totalDatabaseStock: number;
   dealers: DealerListingStats[];
 }
 
@@ -143,6 +145,7 @@ export interface DealerWithStats {
 
 export interface ListingOverview {
   dealerId: number;
+  totalDatabaseStock: number;
   advertisedStockQty: number;
   notAdvertisedCriteria: {
     count: number;

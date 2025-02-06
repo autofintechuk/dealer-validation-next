@@ -176,6 +176,7 @@ export class MarketplaceAPI {
               numberOfActiveStock: 0,
             },
             marketcheckTotalStock: stats?.marketcheckTotalStock || 0,
+            totalDatabaseStock: stats?.DatabaseStock || 0,
             categorizedVehicles: stats?.categorizedVehicles || [],
           },
         };

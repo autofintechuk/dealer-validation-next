@@ -6,6 +6,7 @@ import type {
   Organization,
   DealerListingStats,
   ListingByDealerResponse,
+  DealerReportResponse,
 } from "./types";
 
 export class MarketplaceAPI {
@@ -229,6 +230,18 @@ export class MarketplaceAPI {
     }
 
     return JSON.parse(responseText);
+  }
+
+  async getDealerReports(): Promise<DealerReportResponse> {
+    const response = await fetch(`${this.baseUrl}/dealers/report`, {
+      headers: await this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch dealer reports");
+    }
+
+    return response.json();
   }
 }
 

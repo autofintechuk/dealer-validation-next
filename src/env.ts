@@ -13,6 +13,8 @@ export const env = createEnv({
         // Ensure each password is at least 1 character long after trimming
         return val.split(",").every((p) => p.trim().length >= 1);
       }, "Each password must be at least 1 character long"),
+    MARKETCHECK_API_URL: z.string(),
+    MARKETCHECK_API_KEY: z.string(),
   },
   client: {},
   runtimeEnv: {
@@ -20,5 +22,7 @@ export const env = createEnv({
     MARKETPLACE_CLIENT_ID: process.env.MARKETPLACE_CLIENT_ID,
     MARKETPLACE_CLIENT_SECRET: process.env.MARKETPLACE_CLIENT_SECRET,
     AUTH_PASSWORD: process.env.AUTH_PASSWORD,
+    MARKETCHECK_API_URL: process.env.MARKETCHECK_API_URL,
+    MARKETCHECK_API_KEY: process.env.MARKETCHECK_API_KEY,
   },
 });

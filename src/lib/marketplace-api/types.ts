@@ -402,4 +402,25 @@ export interface DealersResponse {
   totalPages: number;
 }
 
+export interface DealerReport {
+  dealerId: string;
+  weeklyTarget: number;
+  monthlyTarget: number;
+  weeklyLeadsSoFar: number;
+  monthlyLeadsSoFar: number;
+  rollingWeeklyLeads: number;
+  rollingMonthlyLeads: number;
+  weeklyLeadsRemaining: number;
+  monthlyLeadsRemaining: number;
+  activeVehicleCount: number;
+  lastWeeklyReset: string;
+  lastMonthlyReset: string;
+  status: string;
+}
+
+export interface DealerReportResponse {
+  reports: DealerReport[];
+  timestamp: string;
+}
+
 // ... rest of the interfaces ...

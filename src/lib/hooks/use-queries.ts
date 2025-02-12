@@ -1,5 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import type { DealerWithStats, DealerVehicle } from "@/lib/marketplace-api";
+import type {
+  DealerWithStats,
+  DealerVehicle,
+  DealerReportResponse,
+} from "@/lib/marketplace-api/types";
 
 async function fetchDealers() {
   const response = await fetch("/api/dealers");
@@ -14,6 +18,14 @@ async function fetchDealerVehicles(dealerId: string) {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.details || "Failed to fetch vehicles");
+  }
+  return response.json();
+}
+
+async function fetchDealerReports() {
+  const response = await fetch("/api/dealers/reports");
+  if (!response.ok) {
+    throw new Error("Failed to fetch dealer reports");
   }
   return response.json();
 }
@@ -37,6 +49,16 @@ export function useDealerVehicles(dealerId: string, enabled: boolean = true) {
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
     refetchOnWindowFocus: false,
+    retry: 2,
+  });
+}
+
+export function useDealerReports() {
+  return useQuery<DealerReportResponse>({
+    queryKey: ["dealer-reports"],
+    queryFn: fetchDealerReports,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
     retry: 2,
   });
 }

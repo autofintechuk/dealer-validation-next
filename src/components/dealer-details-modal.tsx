@@ -2,7 +2,7 @@
 
 import { type DealerWithStats } from "@/lib/marketplace-api";
 import { useState, useMemo, useCallback } from "react";
-import { useDealerVehicles } from "@/lib/hooks/use-queries";
+import { useDealerVehicles, useDealerReports } from "@/lib/hooks/use-queries";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -137,6 +137,11 @@ export function DealerDetailsModal({
     isLoading,
     error,
   } = useDealerVehicles(dealer.marketcheckDealerId, activeTab === "vehicles");
+
+  const { data: reportsData } = useDealerReports();
+  const dealerReport = reportsData?.reports.find(
+    (r) => r.dealerId === dealer.marketcheckDealerId
+  );
 
   // Memoize vehicle issues transformation
   const vehicleIssues = useMemo(() => {
@@ -283,8 +288,21 @@ export function DealerDetailsModal({
         accessorKey: "vrm",
         header: "VRM",
         cell: ({ row }) => (
-          <div className="font-mono text-sm whitespace-nowrap">
-            {row.getValue("vrm")}
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-sm">{row.getValue("vrm")}</span>
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                const vrm = row.getValue("vrm") as string;
+                const response = await fetch(`/api/vehicles/link?vrm=${vrm}`);
+                if (!response.ok) return;
+                const { link } = await response.json();
+                if (link) window.open(link, "_blank", "noopener,noreferrer");
+              }}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </button>
           </div>
         ),
       },
@@ -440,26 +458,40 @@ export function DealerDetailsModal({
 
           <div className="px-6 pt-6">
             <div className="flex gap-4">
-              <button
+              <Button
                 onClick={() => handleTabChange("issues")}
-                className={`font-medium px-4 py-2 rounded ${
+                variant={activeTab === "issues" ? "default" : "secondary"}
+                className={`font-medium transition-colors ${
                   activeTab === "issues"
-                    ? "bg-gray-800 text-white"
-                    : "bg-gray-100 text-gray-800"
+                    ? "bg-gray-800 text-white hover:bg-gray-700"
+                    : "hover:bg-gray-200"
                 }`}
               >
                 Issues
-              </button>
-              <button
+              </Button>
+              <Button
+                onClick={() => handleTabChange("reports")}
+                variant={activeTab === "reports" ? "default" : "secondary"}
+                className={`font-medium transition-colors ${
+                  activeTab === "reports"
+                    ? "bg-gray-800 text-white hover:bg-gray-700"
+                    : "hover:bg-gray-200"
+                }`}
+              >
+                Reports
+              </Button>
+
+              <Button
                 onClick={() => handleTabChange("vehicles")}
-                className={`font-medium px-4 py-2 rounded ${
+                variant={activeTab === "vehicles" ? "default" : "secondary"}
+                className={`font-medium transition-colors ${
                   activeTab === "vehicles"
-                    ? "bg-gray-800 text-white"
-                    : "bg-gray-100 text-gray-800"
+                    ? "bg-gray-800 text-white hover:bg-gray-700"
+                    : "hover:bg-gray-200"
                 }`}
               >
                 All Vehicles
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -765,41 +797,92 @@ export function DealerDetailsModal({
                 )}
               </>
             )}
-            {activeTab === "writeoff" && (
-              <>
-                <div className="mb-4">
-                  <div className="text-lg font-semibold">
-                    Writeoff Category Vehicles
-                  </div>
-                </div>
-                <div className="bg-white rounded-md border border-gray-200 shadow-sm min-h-[200px] overflow-x-auto">
-                  <Table>
-                    <TableHeader className="bg-gray-50">
-                      <TableRow>
-                        <TableHead>Vehicle ID</TableHead>
-                        <TableHead>Category</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {dealer.listingOverview?.categorizedVehicles?.map(
-                        (vehicle) => (
-                          <TableRow key={vehicle.vehicleId}>
-                            <TableCell>{vehicle.vehicleId}</TableCell>
-                            <TableCell>
-                              <Badge
-                                variant="secondary"
-                                className="font-medium"
-                              >
-                                CAT {vehicle.writeOffCategory}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </>
+            {activeTab === "reports" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Weekly Stats</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Target:</span>
+                      <span className="font-medium">
+                        {dealerReport?.weeklyTarget || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Leads So Far:</span>
+                      <span className="font-medium">
+                        {dealerReport?.weeklyLeadsSoFar || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Rolling Leads:</span>
+                      <span className="font-medium">
+                        {dealerReport?.rollingWeeklyLeads || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Remaining:</span>
+                      <span className="font-medium">
+                        {dealerReport?.weeklyLeadsRemaining || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Last Reset:</span>
+                      <span className="font-medium">
+                        {dealerReport?.lastWeeklyReset
+                          ? new Date(
+                              dealerReport.lastWeeklyReset
+                            ).toLocaleDateString()
+                          : "-"}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Monthly Stats</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Target:</span>
+                      <span className="font-medium">
+                        {dealerReport?.monthlyTarget || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Leads So Far:</span>
+                      <span className="font-medium">
+                        {dealerReport?.monthlyLeadsSoFar || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Rolling Leads:</span>
+                      <span className="font-medium">
+                        {dealerReport?.rollingMonthlyLeads || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Remaining:</span>
+                      <span className="font-medium">
+                        {dealerReport?.monthlyLeadsRemaining || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Last Reset:</span>
+                      <span className="font-medium">
+                        {dealerReport?.lastMonthlyReset
+                          ? new Date(
+                              dealerReport.lastMonthlyReset
+                            ).toLocaleDateString()
+                          : "-"}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </div>
         </div>

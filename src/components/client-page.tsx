@@ -138,7 +138,7 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
-              className="p-0 hooverflow-x-auto -mx-3 px-3ver:bg-transparent"
+              className="pl-2 hooverflow-x-auto -mx-3 px-3ver:bg-transparent"
             >
               Dealer Name
               <ArrowUpDown className="h-4 w-4" />
@@ -149,25 +149,6 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
           <div className="font-medium tracking-tight">
             {row.original.dealer.name || "-"}
           </div>
-        ),
-      },
-      {
-        accessorKey: "dealer.website",
-        header: "Website",
-        cell: ({ row }) => (
-          <a
-            href={
-              row.original.dealer.website
-                ? `https://${row.original.dealer.website}`
-                : "#"
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            {row.original.dealer.website || "-"}
-          </a>
         ),
       },
       {
@@ -293,20 +274,7 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
       },
       {
         accessorKey: "report.weeklyTarget",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Weekly Target
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
+        header: () => <div className="text-right">Weekly Target</div>,
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {row.original.report?.weeklyTarget || "-"}
@@ -315,20 +283,7 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
       },
       {
         accessorKey: "report.monthlyTarget",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Monthly Target
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
+        header: () => <div className="text-right">Monthly Target</div>,
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {row.original.report?.monthlyTarget || "-"}
@@ -337,20 +292,7 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
       },
       {
         accessorKey: "report.weeklyLeadsSoFar",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Weekly Leads
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
+        header: () => <div className="text-right">Weekly Leads</div>,
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {row.original.report?.weeklyLeadsSoFar || "-"}
@@ -359,20 +301,7 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
       },
       {
         accessorKey: "report.monthlyLeadsSoFar",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Monthly Leads
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
+        header: () => <div className="text-right">Monthly Leads</div>,
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {row.original.report?.monthlyLeadsSoFar || "-"}
@@ -381,20 +310,7 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
       },
       {
         accessorKey: "report.rollingWeeklyLeads",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Rolling Weekly
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
+        header: () => <div className="text-right">Rolling Weekly</div>,
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {row.original.report?.rollingWeeklyLeads || "-"}
@@ -403,20 +319,7 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
       },
       {
         accessorKey: "report.rollingMonthlyLeads",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Rolling Monthly
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
+        header: () => <div className="text-right">Rolling Monthly</div>,
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {row.original.report?.rollingMonthlyLeads || "-"}
@@ -425,7 +328,20 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
       },
       {
         accessorKey: "report.status",
-        header: "Lead Status",
+        header: ({ column }) => (
+          <div>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Lead Status
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        ),
         cell: ({ row }) => (
           <div>
             <Badge

@@ -447,13 +447,27 @@ export function DealerDetailsModal({
       <DialogContent className="max-w-4xl h-[90vh] bg-gray-50 p-0 w-[95vw]">
         <div className="h-full overflow-y-auto">
           <DialogHeader className="px-4 sm:px-6 py-4 bg-gray-900 text-white border-b border-gray-800">
-            <DialogTitle className="text-xl font-semibold tracking-tight">
+            <DialogTitle className="text-xl font-semibold tracking-tight flex items-center gap-2">
               {dealer.dealer.name}
-              <div className="text-sm font-normal text-gray-400 mt-1">
-                {dealer.dealer.street}, {dealer.dealer.city},{" "}
-                {dealer.dealer.zipcode}
-              </div>
+              {dealer.dealer.website && (
+                <button
+                  onClick={() =>
+                    window.open(
+                      `https://${dealer.dealer.website}`,
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                  className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </button>
+              )}
             </DialogTitle>
+            <div className="text-sm font-normal text-gray-400 mt-1">
+              {dealer.dealer.street}, {dealer.dealer.city},{" "}
+              {dealer.dealer.zipcode}
+            </div>
           </DialogHeader>
 
           <div className="px-6 pt-6">

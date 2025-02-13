@@ -141,6 +141,7 @@ export interface DealerWithStats {
   createdAt: string;
   updatedAt: string;
   listingOverview?: ListingOverview;
+  report?: DealerReport;
 }
 
 export interface ListingOverview {
@@ -421,6 +422,10 @@ export interface DealerReport {
 export interface DealerReportResponse {
   reports: DealerReport[];
   timestamp: string;
+}
+
+export interface DealerWithStatsAndReport extends DealerWithStats {
+  report?: DealerReport;
 }
 
 // ... rest of the interfaces ...

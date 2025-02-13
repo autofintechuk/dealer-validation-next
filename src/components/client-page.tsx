@@ -1,10 +1,17 @@
 "use client";
 
-import { type DealerWithStats } from "@/lib/marketplace-api";
+import {
+  type DealerWithStats,
+  type DealerReportResponse,
+} from "@/lib/marketplace-api/types";
 import { DealerDetailsModal } from "./dealer-details-modal";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { handleLogout } from "../lib/actions";
-import { useDealers, useDealerStats } from "@/lib/hooks/use-queries";
+import {
+  useDealers,
+  useDealerStats,
+  useDealerReports,
+} from "@/lib/hooks/use-queries";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Table,
@@ -30,6 +37,7 @@ import {
 } from "@tanstack/react-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import React from "react";
+import { DealerReport } from "@/lib/marketplace-api/types";
 
 // Memoize skeleton components
 const StatsCardSkeleton = React.memo(function StatsCardSkeleton() {
@@ -75,7 +83,12 @@ const TableSkeleton = React.memo(function TableSkeleton() {
   );
 });
 
-function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
+interface DealersTableProps {
+  dealers: DealerWithStats[];
+  reports?: DealerReportResponse;
+}
+
+function DealersTable({ dealers, reports }: DealersTableProps) {
   const [selectedDealer, setSelectedDealer] = useState<DealerWithStats | null>(
     null
   );
@@ -125,7 +138,7 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
-              className="p-0 hover:bg-transparent"
+              className="p-0 hooverflow-x-auto -mx-3 px-3ver:bg-transparent"
             >
               Dealer Name
               <ArrowUpDown className="h-4 w-4" />
@@ -278,13 +291,173 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
           </div>
         ),
       },
+      {
+        accessorKey: "report.weeklyTarget",
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Weekly Target
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-right font-medium">
+            {row.original.report?.weeklyTarget || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "report.monthlyTarget",
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Monthly Target
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-right font-medium">
+            {row.original.report?.monthlyTarget || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "report.weeklyLeadsSoFar",
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Weekly Leads
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-right font-medium">
+            {row.original.report?.weeklyLeadsSoFar || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "report.monthlyLeadsSoFar",
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Monthly Leads
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-right font-medium">
+            {row.original.report?.monthlyLeadsSoFar || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "report.rollingWeeklyLeads",
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Rolling Weekly
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-right font-medium">
+            {row.original.report?.rollingWeeklyLeads || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "report.rollingMonthlyLeads",
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="p-0 hover:bg-transparent"
+            >
+              Rolling Monthly
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-right font-medium">
+            {row.original.report?.rollingMonthlyLeads || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "report.status",
+        header: "Lead Status",
+        cell: ({ row }) => (
+          <div>
+            <Badge
+              variant={
+                row.original.report?.status === "active"
+                  ? "default"
+                  : "secondary"
+              }
+              className="font-medium"
+            >
+              {row.original.report?.status || "-"}
+            </Badge>
+          </div>
+        ),
+      },
     ],
     []
   );
 
-  // Create table instance
+  // Add this before the table instance creation
+  const dealersWithReports = useMemo(() => {
+    return dealers.map((dealer) => ({
+      ...dealer,
+      report: reports?.reports.find(
+        (r: DealerReport) => r.dealerId === dealer.marketcheckDealerId
+      ),
+    }));
+  }, [dealers, reports]);
+
+  // Update the table instance to use dealersWithReports
   const tableInstance = useReactTable({
-    data: dealers,
+    data: dealersWithReports,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -310,7 +483,7 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
 
   return (
     <>
-      <div className="flex items-center mb-4">
+      <div className=" max-w-6xl mx-auto flex items-center mb-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
           <Input
@@ -373,6 +546,7 @@ function DealersTable({ dealers }: { dealers: DealerWithStats[] }) {
 export default function ClientPage() {
   const { data: dealers, isLoading, error } = useDealers();
   const { data: stats } = useDealerStats();
+  const { data: reportsData } = useDealerReports();
 
   // Memoize export handler
   const handleExport = useCallback(async (type: string, dealerId?: string) => {
@@ -399,7 +573,7 @@ export default function ClientPage() {
             </button>
           </div>
         </header>
-        <main className="max-w-6xl mx-auto px-3 py-6">
+        <main className="px-3 py-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatsCardSkeleton />
             <StatsCardSkeleton />
@@ -448,8 +622,8 @@ export default function ClientPage() {
           </form>
         </div>
       </header>
-      <main className="max-w-6xl mx-auto px-3 py-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <main className="px-3 py-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold text-gray-100 tracking-tight">
@@ -518,7 +692,7 @@ export default function ClientPage() {
           </Card>
         </div>
 
-        <div className="flex items-center gap-4 mb-8">
+        <div className="max-w-6xl mx-auto flex items-center gap-4 mb-8">
           <div className="w-full overflow-x-auto flex gap-4 pb-2">
             <Button
               variant="outline"
@@ -551,7 +725,7 @@ export default function ClientPage() {
         </div>
 
         <div className="overflow-x-auto -mx-3 px-3">
-          <DealersTable dealers={dealers || []} />
+          <DealersTable dealers={dealers || []} reports={reportsData} />
         </div>
       </main>
     </div>

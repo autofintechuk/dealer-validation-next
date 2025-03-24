@@ -2,7 +2,7 @@
 
 import { type DealerWithStats } from "@/lib/marketplace-api";
 import { useState, useMemo, useCallback } from "react";
-import { useDealerVehicles, useDealerReports } from "@/lib/hooks/use-queries";
+import { useDealerVehicles } from "@/lib/hooks/use-queries";
 import {
   Dialog,
   DialogContent,
@@ -139,10 +139,10 @@ export function DealerDetailsModal({
   } = useDealerVehicles(dealer.marketcheckDealerId, activeTab === "vehicles");
 
   // const { data: reportsData } = useDealerReports();
-  const reportsData:any = undefined;
-  const dealerReport = reportsData?.reports.find(
-    (r) => r.dealerId === dealer.marketcheckDealerId
-  );
+  // const reportsData:any = undefined;
+  // const dealerReport = reportsData?.reports.find(
+  //   (r) => r.dealerId === dealer.marketcheckDealerId
+  // );
 
   // Memoize vehicle issues transformation
   const vehicleIssues = useMemo(() => {
@@ -812,7 +812,7 @@ export function DealerDetailsModal({
                 )}
               </>
             )}
-            {activeTab === "reports" && (
+            {/* {activeTab === "reports" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>
@@ -898,7 +898,7 @@ export function DealerDetailsModal({
                   </CardContent>
                 </Card>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </DialogContent>

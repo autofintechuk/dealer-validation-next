@@ -1,17 +1,10 @@
 "use client";
 
-import {
-  type DealerWithStats,
-  type DealerReportResponse,
-} from "@/lib/marketplace-api/types";
+import { type DealerWithStats } from "@/lib/marketplace-api/types";
 import { DealerDetailsModal } from "./dealer-details-modal";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { handleLogout } from "../lib/actions";
-import {
-  useDealers,
-  useDealerStats,
-  useDealerReports,
-} from "@/lib/hooks/use-queries";
+import { useDealers, useDealerStats } from "@/lib/hooks/use-queries";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Table,
@@ -24,20 +17,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, ArrowUpDown, Search } from "lucide-react";
+import { Download, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  type ColumnDef,
-  type SortingState,
-  flexRender,
-} from "@tanstack/react-table";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import React from "react";
-import { DealerReport } from "@/lib/marketplace-api/types";
+// import { DealerReport } from "@/lib/marketplace-api/types";
 
 // Memoize skeleton components
 const StatsCardSkeleton = React.memo(function StatsCardSkeleton() {
@@ -85,14 +70,13 @@ const TableSkeleton = React.memo(function TableSkeleton() {
 
 interface DealersTableProps {
   dealers: DealerWithStats[];
-  reports?: DealerReportResponse;
 }
 
-function DealersTable({ dealers, reports }: DealersTableProps) {
+function DealersTable({ dealers }: DealersTableProps) {
   const [selectedDealer, setSelectedDealer] = useState<DealerWithStats | null>(
     null
   );
-  const [sorting, setSorting] = useState<SortingState>([]);
+  // const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -109,17 +93,17 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
   }, [dealers, searchParams]);
 
   // Memoize handlers
-  const handleDealerClick = useCallback(
-    (dealer: DealerWithStats) => {
-      // Don't open dealer page if text is selected
-      if (window.getSelection()?.toString()) {
-        return;
-      }
-      setSelectedDealer(dealer);
-      router.push(`?dealer=${dealer.marketcheckDealerId}`);
-    },
-    [router]
-  );
+  // const handleDealerClick = useCallback(
+  //   (dealer: DealerWithStats) => {
+  //     // Don't open dealer page if text is selected
+  //     if (window.getSelection()?.toString()) {
+  //       return;
+  //     }
+  //     setSelectedDealer(dealer);
+  //     router.push(`?dealer=${dealer.marketcheckDealerId}`);
+  //   },
+  //   [router]
+  // );
 
   const handleCloseModal = useCallback(() => {
     setSelectedDealer(null);
@@ -127,267 +111,267 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
   }, [router]);
 
   // Memoize columns definition
-  const columns = useMemo<ColumnDef<DealerWithStats>[]>(
-    () => [
-      {
-        accessorKey: "dealer.name",
-        header: ({ column }) => (
-          <div className="text-left">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="pl-2 hooverflow-x-auto -mx-3 px-3ver:bg-transparent"
-            >
-              Dealer Name
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="font-medium tracking-tight">
-            {row.original.dealer.name || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "marketcheckDealerId",
-        header: "Dealer ID",
-        cell: ({ row }) => (
-          <div className="font-mono text-sm">
-            {row.original.marketcheckDealerId}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "listingOverview.databaseTotalStock",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Database Stock
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {row.original.listingOverview?.totalDatabaseStock || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "listingOverview.marketcheckTotalStock",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Total Stock(MC)
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {row.original.listingOverview?.marketcheckTotalStock || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "listingOverview.advertisedStockQty",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Advertised
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {row.original.listingOverview?.advertisedStockQty || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "listingOverview.notAdvertisedCriteria.count",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Not Advertised
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {row.original.listingOverview?.notAdvertisedCriteria.count || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "listingOverview.notAdvertisedExpired.count",
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Expired (48h+)
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="text-right">
-            <Badge variant="destructive" className="font-medium">
-              {row.original.listingOverview?.notAdvertisedExpired.count || "0"}
-            </Badge>
-          </div>
-        ),
-      },
-      {
-        accessorKey: "report.weeklyTarget",
-        header: () => <div className="text-right">Weekly Target</div>,
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {row.original.report?.weeklyTarget || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "report.monthlyTarget",
-        header: () => <div className="text-right">Monthly Target</div>,
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {row.original.report?.monthlyTarget || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "report.weeklyLeadsSoFar",
-        header: () => <div className="text-right">Weekly Leads</div>,
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {row.original.report?.weeklyLeadsSoFar || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "report.monthlyLeadsSoFar",
-        header: () => <div className="text-right">Monthly Leads</div>,
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {row.original.report?.monthlyLeadsSoFar || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "report.rollingWeeklyLeads",
-        header: () => <div className="text-right">Rolling Weekly</div>,
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {row.original.report?.rollingWeeklyLeads || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "report.rollingMonthlyLeads",
-        header: () => <div className="text-right">Rolling Monthly</div>,
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {row.original.report?.rollingMonthlyLeads || "-"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "report.status",
-        header: ({ column }) => (
-          <div>
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="p-0 hover:bg-transparent"
-            >
-              Lead Status
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div>
-            <Badge
-              variant={
-                row.original.report?.status === "active"
-                  ? "default"
-                  : "secondary"
-              }
-              className="font-medium"
-            >
-              {row.original.report?.status || "-"}
-            </Badge>
-          </div>
-        ),
-      },
-    ],
-    []
-  );
+  // const columns = useMemo<ColumnDef<DealerWithStats>[]>(
+  //   () => [
+  //     {
+  //       accessorKey: "dealer.name",
+  //       header: ({ column }) => (
+  //         <div className="text-left">
+  //           <Button
+  //             variant="ghost"
+  //             onClick={() =>
+  //               column.toggleSorting(column.getIsSorted() === "asc")
+  //             }
+  //             className="pl-2 hooverflow-x-auto -mx-3 px-3ver:bg-transparent"
+  //           >
+  //             Dealer Name
+  //             <ArrowUpDown className="h-4 w-4" />
+  //           </Button>
+  //         </div>
+  //       ),
+  //       cell: ({ row }) => (
+  //         <div className="font-medium tracking-tight">
+  //           {row.original.dealer.name || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "marketcheckDealerId",
+  //       header: "Dealer ID",
+  //       cell: ({ row }) => (
+  //         <div className="font-mono text-sm">
+  //           {row.original.marketcheckDealerId}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "listingOverview.databaseTotalStock",
+  //       header: ({ column }) => (
+  //         <div className="text-right">
+  //           <Button
+  //             variant="ghost"
+  //             onClick={() =>
+  //               column.toggleSorting(column.getIsSorted() === "asc")
+  //             }
+  //             className="p-0 hover:bg-transparent"
+  //           >
+  //             Database Stock
+  //             <ArrowUpDown className="h-4 w-4" />
+  //           </Button>
+  //         </div>
+  //       ),
+  //       cell: ({ row }) => (
+  //         <div className="text-right font-medium">
+  //           {row.original.listingOverview?.totalDatabaseStock || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "listingOverview.marketcheckTotalStock",
+  //       header: ({ column }) => (
+  //         <div className="text-right">
+  //           <Button
+  //             variant="ghost"
+  //             onClick={() =>
+  //               column.toggleSorting(column.getIsSorted() === "asc")
+  //             }
+  //             className="p-0 hover:bg-transparent"
+  //           >
+  //             Total Stock(MC)
+  //             <ArrowUpDown className="h-4 w-4" />
+  //           </Button>
+  //         </div>
+  //       ),
+  //       cell: ({ row }) => (
+  //         <div className="text-right font-medium">
+  //           {row.original.listingOverview?.marketcheckTotalStock || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "listingOverview.advertisedStockQty",
+  //       header: ({ column }) => (
+  //         <div className="text-right">
+  //           <Button
+  //             variant="ghost"
+  //             onClick={() =>
+  //               column.toggleSorting(column.getIsSorted() === "asc")
+  //             }
+  //             className="p-0 hover:bg-transparent"
+  //           >
+  //             Advertised
+  //             <ArrowUpDown className="h-4 w-4" />
+  //           </Button>
+  //         </div>
+  //       ),
+  //       cell: ({ row }) => (
+  //         <div className="text-right font-medium">
+  //           {row.original.listingOverview?.advertisedStockQty || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "listingOverview.notAdvertisedCriteria.count",
+  //       header: ({ column }) => (
+  //         <div className="text-right">
+  //           <Button
+  //             variant="ghost"
+  //             onClick={() =>
+  //               column.toggleSorting(column.getIsSorted() === "asc")
+  //             }
+  //             className="p-0 hover:bg-transparent"
+  //           >
+  //             Not Advertised
+  //             <ArrowUpDown className="h-4 w-4" />
+  //           </Button>
+  //         </div>
+  //       ),
+  //       cell: ({ row }) => (
+  //         <div className="text-right font-medium">
+  //           {row.original.listingOverview?.notAdvertisedCriteria.count || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "listingOverview.notAdvertisedExpired.count",
+  //       header: ({ column }) => (
+  //         <div className="text-right">
+  //           <Button
+  //             variant="ghost"
+  //             onClick={() =>
+  //               column.toggleSorting(column.getIsSorted() === "asc")
+  //             }
+  //             className="p-0 hover:bg-transparent"
+  //           >
+  //             Expired (48h+)
+  //             <ArrowUpDown className="h-4 w-4" />
+  //           </Button>
+  //         </div>
+  //       ),
+  //       cell: ({ row }) => (
+  //         <div className="text-right">
+  //           <Badge variant="destructive" className="font-medium">
+  //             {row.original.listingOverview?.notAdvertisedExpired.count || "0"}
+  //           </Badge>
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "report.weeklyTarget",
+  //       header: () => <div className="text-right">Weekly Target</div>,
+  //       cell: ({ row }) => (
+  //         <div className="text-right font-medium">
+  //           {row.original.report?.weeklyTarget || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "report.monthlyTarget",
+  //       header: () => <div className="text-right">Monthly Target</div>,
+  //       cell: ({ row }) => (
+  //         <div className="text-right font-medium">
+  //           {row.original.report?.monthlyTarget || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "report.weeklyLeadsSoFar",
+  //       header: () => <div className="text-right">Weekly Leads</div>,
+  //       cell: ({ row }) => (
+  //         <div className="text-right font-medium">
+  //           {row.original.report?.weeklyLeadsSoFar || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "report.monthlyLeadsSoFar",
+  //       header: () => <div className="text-right">Monthly Leads</div>,
+  //       cell: ({ row }) => (
+  //         <div className="text-right font-medium">
+  //           {row.original.report?.monthlyLeadsSoFar || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "report.rollingWeeklyLeads",
+  //       header: () => <div className="text-right">Rolling Weekly</div>,
+  //       cell: ({ row }) => (
+  //         <div className="text-right font-medium">
+  //           {row.original.report?.rollingWeeklyLeads || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "report.rollingMonthlyLeads",
+  //       header: () => <div className="text-right">Rolling Monthly</div>,
+  //       cell: ({ row }) => (
+  //         <div className="text-right font-medium">
+  //           {row.original.report?.rollingMonthlyLeads || "-"}
+  //         </div>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: "report.status",
+  //       header: ({ column }) => (
+  //         <div>
+  //           <Button
+  //             variant="ghost"
+  //             onClick={() =>
+  //               column.toggleSorting(column.getIsSorted() === "asc")
+  //             }
+  //             className="p-0 hover:bg-transparent"
+  //           >
+  //             Lead Status
+  //             <ArrowUpDown className="ml-2 h-4 w-4" />
+  //           </Button>
+  //         </div>
+  //       ),
+  //       cell: ({ row }) => (
+  //         <div>
+  //           <Badge
+  //             variant={
+  //               row.original.report?.status === "active"
+  //                 ? "default"
+  //                 : "secondary"
+  //             }
+  //             className="font-medium"
+  //           >
+  //             {row.original.report?.status || "-"}
+  //           </Badge>
+  //         </div>
+  //       ),
+  //     },
+  //   ],
+  //   []
+  // );
 
-  // Add this before the table instance creation
-  const dealersWithReports = useMemo(() => {
-    return dealers.map((dealer) => ({
-      ...dealer,
-      report: reports?.reports.find(
-        (r: DealerReport) => r.dealerId === dealer.marketcheckDealerId
-      ),
-    }));
-  }, [dealers, reports]);
+  // // Add this before the table instance creation
+  // const dealersWithReports = useMemo(() => {
+  //   return dealers.map((dealer) => ({
+  //     ...dealer,
+  //     report: reports?.reports.find(
+  //       (r: DealerReport) => r.dealerId === dealer.marketcheckDealerId
+  //     ),
+  //   }));
+  // }, [dealers, reports]);
 
-  // Update the table instance to use dealersWithReports
-  const tableInstance = useReactTable({
-    data: dealersWithReports,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
-    state: {
-      sorting,
-      globalFilter,
-    },
-    onGlobalFilterChange: setGlobalFilter,
-  });
+  // // Update the table instance to use dealersWithReports
+  // const tableInstance = useReactTable({
+  //   data: dealersWithReports,
+  //   columns,
+  //   getCoreRowModel: getCoreRowModel(),
+  //   getSortedRowModel: getSortedRowModel(),
+  //   getFilteredRowModel: getFilteredRowModel(),
+  //   onSortingChange: setSorting,
+  //   state: {
+  //     sorting,
+  //     globalFilter,
+  //   },
+  //   onGlobalFilterChange: setGlobalFilter,
+  // });
 
-  // Memoize table instance
-  const table = useMemo(() => tableInstance, [tableInstance]);
+  // // Memoize table instance
+  // const table = useMemo(() => tableInstance, [tableInstance]);
 
   // Memoize search input handler
   const handleSearchChange = useCallback(
@@ -411,7 +395,7 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
         </div>
       </div>
 
-      <div className="rounded-md border bg-white shadow-sm">
+      {/* <div className="rounded-md border bg-white shadow-sm">
         <Table>
           <TableHeader className="bg-gray-50">
             <TableRow>
@@ -446,7 +430,7 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
           </TableBody>
         </Table>
       </div>
-
+ */}
       {selectedDealer && (
         <DealerDetailsModal
           dealer={selectedDealer}
@@ -463,7 +447,6 @@ export default function ClientPage() {
   const { data: dealers, isLoading, error } = useDealers();
   const { data: stats } = useDealerStats();
   // const { data: reportsData } = useDealerReports();
-  const reportsData:any = undefined;
   // Memoize export handler
   const handleExport = useCallback(async (type: string, dealerId?: string) => {
     const params = new URLSearchParams({ type });
@@ -641,7 +624,7 @@ export default function ClientPage() {
         </div>
 
         <div className="overflow-x-auto -mx-3 px-3">
-          <DealersTable dealers={dealers || []} reports={reportsData} />
+          <DealersTable dealers={dealers || []} />
         </div>
       </main>
     </div>

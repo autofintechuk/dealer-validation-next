@@ -462,8 +462,8 @@ function DealersTable({ dealers, reports }: DealersTableProps) {
 export default function ClientPage() {
   const { data: dealers, isLoading, error } = useDealers();
   const { data: stats } = useDealerStats();
-  const { data: reportsData } = useDealerReports();
-
+  // const { data: reportsData } = useDealerReports();
+  const reportsData:any = undefined;
   // Memoize export handler
   const handleExport = useCallback(async (type: string, dealerId?: string) => {
     const params = new URLSearchParams({ type });

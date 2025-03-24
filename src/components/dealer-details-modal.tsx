@@ -138,7 +138,8 @@ export function DealerDetailsModal({
     error,
   } = useDealerVehicles(dealer.marketcheckDealerId, activeTab === "vehicles");
 
-  const { data: reportsData } = useDealerReports();
+  // const { data: reportsData } = useDealerReports();
+  const reportsData:any = undefined;
   const dealerReport = reportsData?.reports.find(
     (r) => r.dealerId === dealer.marketcheckDealerId
   );

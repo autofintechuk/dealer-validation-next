@@ -18,10 +18,7 @@ export async function GET(request: NextRequest) {
     switch (type) {
       case "all-vehicles":
         response = await fetch(
-          `${process.env.MARKETPLACE_API_URL}/organizations/export/${organizationId}/dealers/vehicles`,
-          {
-            headers: await marketplaceAPI.getHeaders(),
-          }
+          `${process.env.CSV_URL}`
         );
         filename = "all-vehicles.csv";
         break;
